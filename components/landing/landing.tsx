@@ -11,6 +11,7 @@ import {
   NotebookPen,
   ShieldCheck,
   Target,
+  Users,
 } from "lucide-react";
 import { LogoMark } from "@/components/shell/logo";
 import { GLOSSARY_LIST } from "@/lib/academy/glossary";
@@ -371,6 +372,40 @@ export function Landing() {
                   {firstTrack?.title ?? "The first track"} assumes no prior knowledge. Create a free account and your progress, quiz results and streak follow you to your dashboard.
                 </p>
                 <Ctas className="mt-9" center />
+              </div>
+            </div>
+          </div>
+        </section>
+        {/* DT Boys */}
+        <section aria-labelledby="dt-h" className="border-t border-line">
+          <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-24">
+            <div className="grid items-center gap-10 md:grid-cols-[auto_1fr] md:gap-14">
+              <div className="relative mx-auto md:mx-0">
+                <div aria-hidden className="absolute inset-0 -z-10 rounded-[2rem] bg-accent/30 blur-3xl" />
+                <div className="grid size-40 place-items-center rounded-[2rem] border border-accent/40 bg-linear-to-br from-accent/30 via-panel to-up/15 shadow-[0_20px_60px_-20px_rgba(123,110,246,0.7)] md:size-48">
+                  <span className="text-6xl font-bold tracking-[-0.06em] md:text-7xl">
+                    <span className="text-gradient">DT</span>
+                  </span>
+                </div>
+              </div>
+              <div className="text-center md:text-left">
+                <p className="inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.14em] text-accent-strong">
+                  <Users className="size-4" aria-hidden /> Our crew
+                </p>
+                <h2 id="dt-h" className="mt-3 text-balance text-3xl font-semibold leading-tight tracking-[-0.02em] md:text-[2.5rem]">
+                  Built for the DT Boys.
+                </h2>
+                <p className="mt-2 text-lg font-medium text-fg-body">Dangali Traders Boys</p>
+                <p className="mx-auto mt-4 max-w-2xl text-[16px] leading-relaxed text-fg-muted md:mx-0">
+                  Trader OS started as a way to help our own group learn the markets properly: the basics first, risk before reward, and practice before real money. If you&apos;re one of the boys, make an account, start with the first lesson and keep each other honest. We learn this together.
+                </p>
+                <ul className="mt-6 flex flex-wrap justify-center gap-2 md:justify-start">
+                  {["Learn the basics together", "Practise, don't gamble", "Hold each other accountable"].map((t) => (
+                    <li key={t} className="inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-raised/60 px-3 py-1.5 text-[13px] text-fg-body">
+                      <Check className="size-3.5 text-up" strokeWidth={2.25} aria-hidden /> {t}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
