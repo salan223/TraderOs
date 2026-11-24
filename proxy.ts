@@ -7,7 +7,7 @@ import { DASHBOARD_PATH, isPublicPath, isSignedOutOnly } from "@/lib/auth/routes
   Runs before every page request (static files are excluded by the matcher).
   1. Refreshes the Supabase session cookie, so server code sees a valid user.
   2. Sends signed-out visitors of app pages to /login?next=<where they were going>.
-  3. Sends signed-in visitors of / and the sign-in pages to the dashboard.
+  3. Sends signed-in visitors of the sign-in pages to the dashboard.
   With Supabase not configured, everything is allowed (guest mode). With
   TRADEROS_ALLOW_GUESTS=1, signed-out visitors may also use the app as guests.
 */
@@ -46,7 +46,9 @@ export async function proxy(request: NextRequest) {
     return r;
   };
 
-  if (signedIn && (path === "/" || isSignedOutOnly(path))) {
+  // Signed-in users may still open the landing page (the logo links there);
+  // only the log-in / sign-up pages send them on to the dashboard.
+  if (signedIn && isSignedOutOnly(path)) {
     return redirect(new URL(DASHBOARD_PATH, request.url));
   }
 

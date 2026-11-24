@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ShieldCheck } from "lucide-react";
 import { NAV, isActive } from "@/lib/nav";
@@ -14,9 +15,9 @@ export function Topbar() {
   return (
     <header data-overlay="top" className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-line bg-canvas/85 px-4 backdrop-blur md:px-6">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="md:hidden">
+        <Link href="/" aria-label="Trader OS home page" className="md:hidden">
           <LogoMark className="size-6" />
-        </span>
+        </Link>
         <h1 className="truncate text-sm font-medium">{current?.label ?? "Trader OS"}</h1>
       </div>
       <div className="flex items-center gap-2">

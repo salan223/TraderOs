@@ -17,9 +17,9 @@ import { GLOSSARY_LIST } from "@/lib/academy/glossary";
 import { LESSONS, TRACKS } from "@/lib/academy/curriculum";
 import { LIVE_INSTRUMENTS } from "@/lib/market/instruments";
 import { NAV, isBuilt } from "@/lib/nav";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { cn } from "@/lib/cn";
 import { HeroPulse, MarketBoard, NewsBoard, TickerTape } from "./live-market";
+import { Ctas, HeaderActions } from "./account-actions";
 
 /*
   Public landing page. Everything stated here is true of the app as built:
@@ -28,32 +28,6 @@ import { HeroPulse, MarketBoard, NewsBoard, TickerTape } from "./live-market";
   comes from lib/nav.ts. There are no testimonials, user counts or
   performance claims.
 */
-
-const BTN = "inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all";
-const PRIMARY = cn(
-  BTN,
-  "h-12 px-6 text-[15px] text-white bg-linear-to-b from-accent-strong to-accent shadow-[0_10px_30px_-10px_rgba(123,110,246,0.8)] ring-1 ring-inset ring-white/15 hover:brightness-110",
-);
-const SECONDARY = cn(BTN, "h-12 px-6 text-[15px] border border-line-strong bg-raised/70 text-fg hover:bg-hover");
-
-function Ctas({ className, center }: { className?: string; center?: boolean }) {
-  return (
-    <div className={cn("flex flex-wrap items-center gap-3", center && "justify-center", className)}>
-      <Link href="/signup" className={PRIMARY}>
-        Start learning free <ArrowRight className="size-4" strokeWidth={2} />
-      </Link>
-      {isSupabaseConfigured ? (
-        <Link href="/login" className={SECONDARY}>
-          Log in
-        </Link>
-      ) : (
-        <Link href="/dashboard" className={SECONDARY}>
-          Try it as a guest
-        </Link>
-      )}
-    </div>
-  );
-}
 
 function SectionHead({ id, eyebrow, title, text, center }: { id: string; eyebrow: string; title: React.ReactNode; text?: string; center?: boolean }) {
   return (
@@ -146,15 +120,7 @@ export function Landing() {
             ))}
           </nav>
           <nav aria-label="Account" className="flex items-center gap-2">
-            <Link href="/login" className="rounded-lg px-3 py-2 text-[14px] font-medium text-fg-muted transition-colors hover:text-fg">
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-linear-to-b from-accent-strong to-accent px-4 py-2 text-[14px] font-medium text-white ring-1 ring-inset ring-white/15 transition hover:brightness-110"
-            >
-              Sign up
-            </Link>
+            <HeaderActions />
           </nav>
         </div>
       </header>

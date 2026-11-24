@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description: "A structured trading academy with simulated practice tools. Education only: no real orders, no signals, no tips.",
 };
 
-/** Public landing page. Signed-in visitors are sent to /dashboard by proxy.ts. */
+/** Public landing page. Signed-in visitors see it too, with a link back to their dashboard. */
 export default function HomePage() {
   return <Landing />;
 }

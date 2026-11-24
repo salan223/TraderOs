@@ -70,7 +70,7 @@ async function loadGroup(def: GroupDef, now: Date): Promise<QuoteGroup> {
     return {
       ...base,
       status: "missing_key",
-      message: `Add a free ${def.provider} key as ${def.keyName} in .env.local to see these prices.`,
+      message: `Add a free ${def.provider} key as ${def.keyName} (in .env.local on your computer, or in your hosting service's environment variables) to see these prices.`,
       fetchedAt: null,
       quotes: [],
     };

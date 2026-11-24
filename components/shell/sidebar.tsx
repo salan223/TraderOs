@@ -21,13 +21,15 @@ export function Sidebar({ collapsed, onToggle }: { collapsed: boolean; onToggle:
       )}
     >
       <div className={cn("flex h-14 items-center border-b border-line", collapsed ? "justify-center px-0" : "gap-2.5 px-4")}>
-        <LogoMark />
-        {!collapsed && (
-          <div className="leading-tight">
-            <div className="text-[13px] font-semibold tracking-tight">Trader OS</div>
-            <div className="text-[10px] uppercase tracking-[0.08em] text-fg-subtle">Learn · Practise · Review</div>
-          </div>
-        )}
+        <Link href="/" aria-label="Trader OS home page" title="Home page" className="flex items-center gap-2.5 rounded-lg">
+          <LogoMark />
+          {!collapsed && (
+            <div className="leading-tight">
+              <div className="text-[13px] font-semibold tracking-tight">Trader OS</div>
+              <div className="text-[10px] uppercase tracking-[0.08em] text-fg-subtle">Learn · Practise · Review</div>
+            </div>
+          )}
+        </Link>
       </div>
 
       <nav aria-label="Main" className="flex-1 overflow-y-auto px-2 py-3">
