@@ -1,0 +1,179 @@
+@import "tailwindcss";
+
+/*
+  Trader OS visual system
+  -----------------------
+  One neutral charcoal scale, one indigo-violet accent, and two semantic
+  colours reserved for price direction (up / down). Everything else is
+  greyscale so that colour always carries meaning.
+*/
+
+@theme {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Surfaces, darkest to lightest */
+  --color-canvas: #08080a;
+  --color-surface: #0e0e11;
+  --color-panel: #121216;
+  --color-raised: #18181d;
+  --color-hover: #1d1d23;
+
+  /* Lines */
+  --color-line: #222229;
+  --color-line-strong: #2e2e37;
+
+  /* Text */
+  --color-fg: #ececf1;
+  --color-fg-body: #c3c3cd; /* lesson body text: softer than fg, easier to read than muted */
+  --color-fg-muted: #a1a1ad;
+  --color-fg-subtle: #6e6e7b;
+
+  /* Accent (indigo-violet) */
+  --color-accent: #7b6ef6;
+  --color-accent-strong: #9488ff;
+  --color-accent-soft: #7b6ef61f;
+
+  /* Semantic */
+  --color-up: #2ebd85;
+  --color-up-soft: #2ebd851a;
+  --color-down: #f0565b;
+  --color-down-soft: #f0565b1a;
+  --color-warn: #e3a541;
+  --color-warn-soft: #e3a5411a;
+  --color-info: #5aa9f0;
+  --color-info-soft: #5aa9f01a;
+
+  --radius-panel: 10px;
+
+  --animate-fade-in: fade-in 180ms ease-out;
+  /* Landing ticker tape: the track holds two copies, so -50% loops seamlessly. */
+  --animate-marquee: marquee 70s linear infinite;
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  /* Opacity only: a transform here would become the containing block for
+     position: fixed descendants (glossary tooltips) while it runs. */
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background: var(--color-canvas);
+    /* Keep focused / scrolled-to elements clear of the sticky top bar (h-14)... */
+    scroll-padding-top: 4.5rem;
+  }
+  /* ...and, on phones, clear of the fixed bottom navigation (h-14 + safe area). */
+  @media (width < 48rem) {
+    html {
+      scroll-padding-bottom: calc(env(safe-area-inset-bottom) + 4.5rem);
+    }
+  }
+  body {
+    background: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-fg);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Thin, quiet scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line-strong) transparent;
+  }
+}
+
+/*
+  Lesson type scale (see docs/lesson-style.md). Five steps only:
+    t-heading    section heading       20px / 1.3  semibold
+    t-subheading card / row title      16px / 1.45 semibold
+    t-body       all reading text      16px / 1.7  body colour, max 70ch
+    t-small      captions, meta        14px / 1.55 muted
+    t-label      eyebrows, part labels 11px / 1.4  uppercase, subtle
+*/
+@utility t-heading {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+}
+@utility t-subheading {
+  font-size: 1rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--color-fg);
+}
+@utility t-body {
+  font-size: 1rem;
+  line-height: 1.7;
+  font-weight: 400;
+  color: var(--color-fg-body);
+  max-width: 70ch;
+}
+@utility t-small {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--color-fg-muted);
+  max-width: 70ch;
+}
+@utility t-label {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fg-subtle);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  /* A near-zero duration would make the ticker flicker; hold it still and let it scroll by hand. */
+  .animate-marquee {
+    animation: none !important;
+  }
+  .ticker-mask {
+    overflow-x: auto;
+  }
+}
+
+/* Landing page helpers */
+.ticker-mask {
+  mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+}
+.hero-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-line) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-line) 70%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 30%, transparent 75%);
+}
+.text-gradient {
+  background: linear-gradient(100deg, var(--color-accent-strong) 0%, #c4b5fd 45%, var(--color-up) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

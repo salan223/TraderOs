@@ -1,0 +1,1208 @@
+import type { Lesson } from "../types";
+
+/*
+  Track 13: Market Structure, lessons 7–11. Fragmentation and best
+  execution, dark pools, high-frequency trading, payment for order flow and
+  retail fills, and circuit breakers. General ideas first; US specifics are
+  labelled "US", and EU and UK rules are named where they differ.
+*/
+
+const T = "market-structure";
+
+export const MS7_FRAGMENTATION: Lesson = {
+  id: "ms-fragmentation",
+  trackId: T,
+  order: 7,
+  format: "full",
+  title: "Fragmentation, the best quote and best execution",
+  summary: "Why one share trades on many venues, how the best price across them is found, and what a broker's duty of best execution means.",
+  minutes: 22,
+  objectives: [
+    "Explain market fragmentation and why it happens.",
+    "Find the best bid and offer across venues, and say what the US calls it.",
+    "Explain routing and a trade-through.",
+    "Explain best execution as a general duty, with its US and EU forms.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "In many countries a large share trades on several exchanges and off-exchange venues at once. The price on one screen is not the whole market." },
+        { kind: "p", text: "Your broker decides where your order goes. Best execution rules are what hold it to account." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Fragmentation from zero",
+      blocks: [
+        { kind: "p", text: "[[market-fragmentation|Fragmentation]] means trading in one asset is split across many venues: exchanges, alternative trading systems, dark pools and dealers." },
+        { kind: "interactive", widget: "ms-fig-nbbo", title: "The best quote across venues", caption: "A drawing. Each venue has its own best bid and ask. The highest bid and lowest ask across all of them form the market's best quote." },
+        { kind: "defs", items: [
+          { term: "[[nbbo|Best bid and offer (NBBO in the US)]]", text: "The highest bid and lowest ask across all venues. In the US it is the National Best Bid and Offer." },
+          { term: "[[smart-order-router|Smart order router]]", text: "Software that sends an order, or pieces of it, to the venues with the best prices." },
+          { term: "[[trade-through|Trade-through]]", text: "A trade at a worse price than a better quote shown on another venue." },
+          { term: "[[best-execution|Best execution]]", text: "A broker's duty to seek the best overall result for your order: price, cost, speed and likelihood of a fill." },
+        ] },
+        { kind: "list", items: [
+          "US: Regulation NMS's Order Protection Rule generally stops venues trading through other venues' protected best quotes. FINRA Rule 5310 sets the broker's best-execution duty.",
+          "EU: MiFID II requires firms to take all sufficient steps to get the best possible result, considering price, costs, speed and likelihood of execution.",
+        ] },
+        { kind: "callout", tone: "key", title: "Key idea", text: "With many venues, the best price is a combination of venues. Best execution asks whether your broker went looking for it." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Route an order",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Read the three venues' quotes and find the best bid and ask across them." },
+          { text: "Buy 600 shares with best-price routing. Note which venues filled it." },
+          { text: "Switch to Only Exchange A. See the shares filled at worse prices than were shown elsewhere." },
+        ] },
+        { kind: "interactive", widget: "ms-nbbo", title: "Routing across venues", caption: "Three simulated venues with made-up quotes and depth. Best-price routing takes the best price on any venue first." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "Routing, worked through",
+      blocks: [
+        { kind: "p", text: "Best asks: venue A 50.03 for 200, venue B 50.02 for 100, venue C 50.04 for 500. You buy 300." },
+        { kind: "p", text: "A router buys 100 on B at 50.02, then 200 on A at 50.03. The total is 5,002 + 10,006 = 15,008 dollars." },
+        { kind: "callout", tone: "example", title: "Example", text: "Sending all 300 to C alone would cost 15,012 dollars, and would trade through better prices shown on A and B." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: one market or many?",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Fragmentation and best execution",
+          what: "Trading split across many venues, held together by consolidated quotes, routers and best-execution rules.",
+          whyItExists: "Rules that allow competing venues lower fees and spark innovation, but split liquidity.",
+          problemSolved: "Competition between venues; best-execution rules aim to stop that competition costing investors.",
+          mechanics: "Each venue publishes quotes; a consolidated feed combines them; routers send orders to the best prices; brokers review execution quality regularly.",
+          math: "Best bid = max over venues of bid; best ask = min over venues of ask. Trade-through for a buy: price paid > best ask.",
+          howTradersUseIt: "Compare fills with the best quote at the time; read brokers' execution and routing reports.",
+          whenUseful: "When judging whether a fill was fair, or choosing a broker.",
+          whenItFails: "Quotes change in microseconds; the best quote you saw may be gone when your order arrives.",
+          limitations: "Best execution is about process and overall result, not a promise of the best price on every order.",
+          misconceptions: "That best execution means the best price at every instant. It means reasonable diligence across several factors.",
+          realExample: "Buying 300 across A and B costs 15,008 dollars; all on C would cost 15,012 and trade through better quotes.",
+          exercise: "In the tool, find a size where best-price routing still has to use the third venue.",
+          practicalTest: "Explain why a fill one cent above the quote on your screen might still be best execution.",
+        } },
+        { kind: "research", research: {
+          title: "Is market fragmentation harming market quality?",
+          authors: "Maureen O'Hara and Mao Ye",
+          year: 2011,
+          venue: "Journal of Financial Economics 100(3), 459–474",
+          peerReviewed: true,
+          question: "Does splitting trading across many venues hurt US stock market quality?",
+          methodology: "Measured fragmentation with trade reporting data and compared more and less fragmented stocks.",
+          data: "US equities.",
+          findings: "More fragmented stocks had lower transaction costs and faster execution. Fragmentation was linked to higher short-term volatility but prices closer to a random walk.",
+          limitations: "US market of the time; the result depends on strong linkage rules between venues.",
+          practicalMeaning: "Fragmentation need not raise costs where venues are tightly linked. The links, not just the number of venues, matter.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/eee/jfinec/v100y2011i3p459-474.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "How the US best quote is built (US)", blocks: [
+          { kind: "p", text: "In the US, venues send their quotes to securities information processors, which publish the consolidated best bid and offer. Fast traders also buy direct feeds from venues." },
+          { kind: "p", text: "Direct feeds can arrive a little sooner than the consolidated one, which is one source of speed advantages (lesson 9)." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Brokers' best-execution committees", view: "Review fills against the best quote and change routing when venues underperform." },
+          { name: "Institutional traders", view: "Use routers that also search dark and block venues, not just displayed quotes." },
+          { name: "Retail traders", view: "Read their broker's order-routing and execution-quality reports." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Treating one exchange's screen as the whole market.", why: "Other venues may show better prices.", instead: "Use consolidated quotes when judging prices." },
+          { mistake: "Thinking best execution guarantees the best price.", why: "It is a duty of diligence over several factors.", instead: "Judge your broker by its process and its reports." },
+          { mistake: "Applying US rule names everywhere.", why: "NBBO and the Order Protection Rule are US rules.", instead: "Check your own market's rules." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "One asset can trade on many venues at once.",
+            "The best quote combines the best bid and ask across venues (US: NBBO).",
+            "Routers send orders to the best prices; a trade-through skips a better price.",
+            "Best execution is a broker's duty to seek the best overall result.",
+          ],
+          equations: [{ label: "Best quote", formula: "best bid = max(bids); best ask = min(asks)" }],
+          implications: ["Judge fills against the consolidated quote.", "Read your broker's routing disclosures."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Find your broker's order-execution policy and note the factors it lists.",
+          "If you trade US shares, find your broker's order-routing report and note where orders go.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-fragmentation-ex",
+    title: "Cost of a routed order",
+    prompt: "Best asks: venue A 50.03 for 200 shares, venue B 50.02 for 100, venue C 50.04 for 500. A router buys 300 shares at the best prices. What is the total cost in dollars?",
+    unit: "dollars",
+    answer: 15008,
+    tolerance: 0,
+    hint: "Take the cheapest venue first, then the next cheapest.",
+    solution: "100 on B at 50.02 = 5,002. 200 on A at 50.03 = 10,006. Total 15008 dollars.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Venue A bids 9.99, venue B bids 10.00, venue C bids 9.98. What is the best bid across venues?",
+      options: [
+        { id: "a", text: "9.99", explain: "That is A's bid." },
+        { id: "b", text: "9.98", explain: "That is the lowest bid." },
+        { id: "c", text: "10.00 on venue B", explain: "Right. The highest bid anywhere." },
+        { id: "d", text: "The average of the three bids, which is 9.99", explain: "The best quote is the best, not the average." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q2",
+      prompt: "What is a trade-through?",
+      options: [
+        { id: "a", text: "A trade at a worse price than a better quote shown elsewhere", explain: "Right. US rules generally protect against it." },
+        { id: "b", text: "A trade at the mid", explain: "That is a midpoint trade." },
+        { id: "c", text: "A trade that settles late", explain: "That is a settlement failure." },
+        { id: "d", text: "A trade reported to the tape more than once by different venues", explain: "That is a reporting error." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "What does best execution require of a broker?",
+      options: [
+        { id: "a", text: "The best price on every order at every instant, with no exceptions", explain: "It is a duty of diligence, not a guarantee." },
+        { id: "b", text: "Reasonable steps to get the best overall result", explain: "Right. Price, cost, speed and likelihood of execution all count." },
+        { id: "c", text: "Sending every order to the largest exchange", explain: "The largest may not be best." },
+        { id: "d", text: "Charging no commission", explain: "Commission is one factor, not the duty." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q4",
+      prompt: "Which of these is a US-specific term?",
+      options: [
+        { id: "a", text: "Best execution", explain: "The idea exists in the EU, UK and elsewhere too." },
+        { id: "b", text: "Market fragmentation", explain: "A general idea." },
+        { id: "c", text: "Smart order router", explain: "A general tool." },
+        { id: "d", text: "NBBO", explain: "Right. The National Best Bid and Offer is a US term." },
+      ],
+      correct: "d",
+    },
+  ],
+  practical: {
+    title: "Your broker's routing",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Find your broker's execution policy or routing disclosure.",
+      "List the venues or firms it sends orders to.",
+      "Note whether it receives payments from any of them.",
+    ],
+    reflectionPrompt: "Does your broker's policy say how it checks that it got the best result?",
+  },
+  glossary: ["market-fragmentation", "nbbo", "smart-order-router", "trade-through", "best-execution"],
+  next: "ms-dark-pools",
+};
+
+export const MS8_DARK_POOLS: Lesson = {
+  id: "ms-dark-pools",
+  trackId: T,
+  order: 8,
+  format: "full",
+  title: "Dark pools",
+  summary: "Venues that hide their orders: why large traders use them, how midpoint matching works, and the trade-off between saving costs and getting filled.",
+  minutes: 20,
+  objectives: [
+    "Explain what a dark pool is and why it hides orders.",
+    "Explain midpoint matching and where its price comes from.",
+    "Weigh the saving of a midpoint fill against the risk of not filling.",
+    "Summarise what research says about dark trading and price discovery.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "A big order shown in a public book tells everyone what you want to do. Others can move the price before you finish." },
+        { kind: "p", text: "Dark pools exist to avoid that. They also raise questions about fairness and about how prices get set." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Dark pools from zero",
+      blocks: [
+        { kind: "interactive", widget: "ms-fig-dark", title: "Lit and dark", caption: "A drawing. The lit book shows its orders; the dark pool hides them and matches buyers and sellers at the lit market's mid." },
+        { kind: "defs", items: [
+          { term: "[[lit-market|Lit market]]", text: "A venue that shows its orders before they trade, like an exchange order book." },
+          { term: "[[dark-pool|Dark pool]]", text: "A venue that does not show orders before trading. Trades are reported afterwards." },
+          { term: "[[midpoint-peg|Midpoint peg]]", text: "An order priced at the mid of the lit best bid and ask, moving as they move." },
+        ] },
+        { kind: "p", text: "Dark pools do not set their own prices. Most match at prices taken from the lit market, often the mid." },
+        { kind: "callout", tone: "warn", title: "Watch out", text: "A dark order may never fill. While you wait, the lit price can move away from you." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Wait in the dark, or buy now?",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Start with no drift. Compare the average cost of waiting in the dark with buying now." },
+          { text: "Lower the chance of a matching seller. More of the order ends up bought on the lit book anyway." },
+          { text: "Add drift against you. Waiting starts to cost more than it saves." },
+        ] },
+        { kind: "interactive", widget: "ms-dark-pool", title: "Dark pool or lit book", caption: "Simulated: 200 runs of a 10,000-share buy order resting at the mid, with random arrivals of matching sellers and a wandering price." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "A block in the dark",
+      blocks: [
+        { kind: "p", text: "A fund wants to buy 200,000 shares. Posting that size in the lit book would show its hand. It rests a midpoint order in a dark pool instead." },
+        { kind: "p", text: "Another fund happens to be selling. The two match at the mid, and both save half the spread and avoid walking the book." },
+        { kind: "callout", tone: "example", title: "Example", text: "If no seller comes, the fund still owns nothing. If prices rise while it waits, it pays more later. The saving is not guaranteed." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: dark trading and price discovery",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Dark pools",
+          what: "Trading venues with no pre-trade transparency: orders are hidden until they trade.",
+          whyItExists: "Large traders want to avoid revealing size and moving the price against themselves.",
+          problemSolved: "They reduce information leakage and market impact for big orders.",
+          mechanics: "Orders rest hidden; when a buyer and seller match, they trade, usually at the lit mid or within the lit spread, and the trade is reported.",
+          math: "Saving vs lit (per share) ≈ half-spread + impact avoided. Expected cost = fill share × mid move + (1 − fill share) × (later lit cost).",
+          howTradersUseIt: "Routing part of large orders to dark pools first, then to the lit book for what is left.",
+          whenUseful: "For large orders in liquid shares, when patience is possible.",
+          whenItFails: "When no counterparty arrives, when prices move while you wait, or when informed traders find your hidden order.",
+          limitations: "Fill rates are uncertain, and dark prices depend on the quality of lit prices.",
+          misconceptions: "That dark means illegal or unreported. Dark pools are regulated venues, and their trades are reported after execution.",
+          realExample: "A midpoint match on 200,000 shares saves half the spread for both sides, if a seller appears.",
+          exercise: "In the tool, find the drift at which waiting costs more than buying now in most runs.",
+          practicalTest: "Explain why too much dark trading could make lit prices less informative.",
+        } },
+        { kind: "research", research: {
+          title: "Dark trading and price discovery",
+          authors: "Carole Comerton-Forde and Tālis J. Putniņš",
+          year: 2015,
+          venue: "Journal of Financial Economics 118(1), 70–92",
+          peerReviewed: true,
+          question: "Does trading in the dark harm the price-setting role of lit markets?",
+          methodology: "Compared informational efficiency at different levels of dark trading, separating small dark trades from blocks.",
+          data: "Australian equities.",
+          findings: "Dark trades were less informed than lit trades. Low levels of non-block dark trading were benign or even helpful, but high levels harmed efficiency. Block dark trades showed no sign of harm.",
+          limitations: "One market; thresholds may differ elsewhere and over time.",
+          practicalMeaning: "Some dark trading can be fine, but if too much uninformed flow leaves the lit book, lit prices can suffer.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/eee/jfinec/v118y2015i1p70-92.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "Rules differ by region", blocks: [
+          { kind: "p", text: "In the US most dark pools are alternative trading systems run by brokers or exchanges. In the EU, rules limit how much trading in a share can happen in the dark." },
+          { kind: "p", text: "Either way, trades must be reported after they happen, so they show up in volume figures." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Institutional traders", view: "Use dark pools for part of large orders and watch fill rates and how prices move after fills." },
+          { name: "Venue analysts", view: "Check whether a pool's fills are followed by adverse moves, a sign of informed counterparties." },
+          { name: "Regulators", view: "Watch the share of dark trading because lit prices are the reference for dark prices." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Thinking dark trades are hidden from everyone forever.", why: "Trades are reported after execution.", instead: "Know that only the pre-trade order is hidden." },
+          { mistake: "Counting the midpoint saving as certain.", why: "There may be no fill, and price can move.", instead: "Weigh the saving against the cost of waiting." },
+          { mistake: "Assuming dark prices are independent.", why: "They usually come from the lit market.", instead: "Remember dark pools rely on lit prices." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Dark pools hide orders before they trade; trades are reported afterwards.",
+            "Most match at prices from the lit market, often the mid.",
+            "They save spread and impact if a match comes, but fills are uncertain.",
+            "Too much dark trading can harm lit price discovery.",
+          ],
+          equations: [{ label: "Midpoint", formula: "(best bid + best ask) ÷ 2" }],
+          implications: ["Patience is the price of a dark fill.", "Lit and dark markets depend on each other."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Look up what share of trading in your market happens off-exchange, from a regulator or exchange report.",
+          "Write down one reason a large fund and one reason a regulator might view dark pools differently.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "classify",
+    id: "ms-dark-pools-ex",
+    title: "Benefit or risk?",
+    prompt: "Sort each statement about using a dark pool for a large order.",
+    categories: [
+      { id: "benefit", label: "Benefit" },
+      { id: "risk", label: "Risk or cost" },
+    ],
+    items: [
+      { id: "1", text: "Others do not see your size before you trade.", category: "benefit", explain: "Less information leakage." },
+      { id: "2", text: "A midpoint fill saves half the spread.", category: "benefit", explain: "Compared with crossing the spread." },
+      { id: "3", text: "No seller may arrive before you need to be done.", category: "risk", explain: "Fill risk." },
+      { id: "4", text: "The lit price can rise while your order waits.", category: "risk", explain: "Opportunity cost." },
+      { id: "5", text: "A better-informed trader may be the one who fills you.", category: "risk", explain: "Adverse selection in the dark." },
+    ],
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Where does a typical dark pool's trading price come from?",
+      options: [
+        { id: "a", text: "The lit market, often its mid", explain: "Right. Dark pools reference lit prices." },
+        { id: "b", text: "The dark pool's own auction", explain: "Some run auctions, but most reference lit prices." },
+        { id: "c", text: "The previous day's close", explain: "Prices follow the live lit market." },
+        { id: "d", text: "Whatever the buyer and seller agree privately over the telephone", explain: "Matching is electronic at reference prices." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q2",
+      prompt: "Are dark pool trades reported?",
+      options: [
+        { id: "a", text: "Never", explain: "They are reported after execution." },
+        { id: "b", text: "Only if the regulator asks", explain: "Reporting is routine." },
+        { id: "c", text: "Before they happen", explain: "That would make them lit." },
+        { id: "d", text: "Yes, after they trade", explain: "Right. Only the order is hidden beforehand." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q3",
+      prompt: "What is the main risk of resting a large order in a dark pool?",
+      options: [
+        { id: "a", text: "It is illegal", explain: "Dark pools are regulated venues." },
+        { id: "b", text: "It always fills at a worse price than the lit market would have given", explain: "Midpoint fills are usually better than the ask." },
+        { id: "c", text: "It may not fill while prices move away", explain: "Right. Fill risk and opportunity cost." },
+        { id: "d", text: "It shows your size to everyone", explain: "Hiding size is the point." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q4",
+      prompt: "What did Comerton-Forde and Putniņš (2015) find about dark trading?",
+      options: [
+        { id: "a", text: "All dark trading improves prices", explain: "High levels were harmful." },
+        { id: "b", text: "Low levels can be harmless, high levels harmful", explain: "Right, and block dark trades showed no harm." },
+        { id: "c", text: "Dark trades are more informed than lit ones", explain: "They found the opposite." },
+        { id: "d", text: "Dark trading has no measurable effect of any kind on lit markets", explain: "They found effects at high levels." },
+      ],
+      correct: "b",
+    },
+  ],
+  practical: {
+    title: "Off-exchange volume",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Find a source showing on- and off-exchange volume for a share you follow.",
+      "Note the off-exchange share on three days.",
+      "Note whether it changes on days with big news.",
+    ],
+    reflectionPrompt: "What would happen to dark pool prices if almost no one traded on the lit book?",
+  },
+  glossary: ["lit-market", "dark-pool", "midpoint-peg"],
+  next: "ms-hft",
+};
+
+export const MS9_HFT: Lesson = {
+  id: "ms-hft",
+  trackId: T,
+  order: 9,
+  format: "full",
+  title: "High-frequency trading, honestly",
+  summary: "What high-frequency traders actually do, what the evidence says about liquidity, and where speed creates costs: the latency race.",
+  minutes: 22,
+  objectives: [
+    "Describe the main high-frequency strategies: market making, arbitrage and latency arbitrage.",
+    "Summarise evidence that algorithmic trading improved liquidity.",
+    "Explain how stale quotes are picked off and why that widens spreads.",
+    "Separate what is known about HFT from popular claims.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "Much of the trading in many markets is done by fast computers. Opinions range from 'they rig the market' to 'they made trading cheap'." },
+        { kind: "p", text: "Both contain some truth. Knowing which parts are supported helps you judge your own trading costs." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "HFT from zero",
+      blocks: [
+        { kind: "p", text: "[[high-frequency-trading|High-frequency trading]] uses fast computers and connections to trade very often, usually holding positions for seconds or less." },
+        { kind: "list", items: [
+          "Market making: quoting both sides and earning the spread, much like lesson 2.",
+          "Arbitrage: trading away small price differences between related assets or venues.",
+          "Latency arbitrage: trading against quotes that are out of date, before their owners can cancel.",
+        ] },
+        { kind: "interactive", widget: "ms-fig-latency", title: "A latency race", caption: "A drawing. After news, a faster firm's order reaches a stale quote before the quoting firm's cancel does." },
+        { kind: "defs", items: [
+          { term: "[[latency-arbitrage|Latency arbitrage]]", text: "Profiting from being faster than others to react to public information." },
+          { term: "[[frequent-batch-auction|Frequent batch auction]]", text: "A proposed design that runs small auctions many times a second, so tiny speed edges matter less." },
+        ] },
+        { kind: "callout", tone: "key", title: "Key idea", text: "Fast market making can narrow spreads. Fast sniping of stale quotes is a cost that spreads must cover. Both happen." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Price a latency race",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Set one fast firm: the quoter never loses the race, so it needs no spread for sniping." },
+          { text: "Raise the number of racing firms. The quoter loses more races and needs a wider spread." },
+          { text: "Add more news moments. The break-even spread grows again." },
+        ] },
+        { kind: "interactive", widget: "ms-latency", title: "Latency race and the spread", caption: "A simplified version of the stale-quote argument in Budish, Cramton and Shim (2015). All numbers are made up." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "A stale quote",
+      blocks: [
+        { kind: "p", text: "A firm quotes an ETF at 100.00 / 100.02. A futures contract on the same index jumps, so the ETF is now worth about 100.05." },
+        { kind: "p", text: "The quoter sends a cancel. A faster firm buys at 100.02 first. The quoter has sold below the new value." },
+        { kind: "callout", tone: "example", title: "Example", text: "Ordinary investors did not cause this loss, but they pay for it: the quoter widens its spread to cover such losses on average." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: the evidence",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "High-frequency trading",
+          what: "Automated trading at very high speed and message rates, mostly market making and arbitrage.",
+          whyItExists: "Electronic markets reward whoever can update quotes and react to prices fastest.",
+          problemSolved: "Fast market making supplies quotes cheaply; arbitrage keeps related prices in line.",
+          mechanics: "Co-located servers, direct data feeds and fast links let firms update quotes, cancel and trade within microseconds.",
+          math: "Break-even half-spread h with sniping: investor rate × h = jump rate × P(lose race) × (jump − h).",
+          howTradersUseIt: "Most traders do not compete on speed. They use limit orders sensibly, avoid sending stale quotes and trade in liquid hours.",
+          whenUseful: "Understanding why spreads in liquid markets are narrow, and why quotes vanish around news.",
+          whenItFails: "In stress, fast liquidity providers can withdraw quickly; the evidence on their role in crashes is mixed.",
+          limitations: "HFT is not one strategy, and data on who does what are limited.",
+          misconceptions: "That HFT always front-runs your order. Some practices harm others; much activity is market making that narrows spreads.",
+          realExample: "A stale ETF offer at 100.02 is bought after the index jumps, before the quoter can cancel.",
+          exercise: "In the tool, find how many racing firms double the break-even spread compared with two.",
+          practicalTest: "Explain one way HFT can lower your costs and one way it can raise them.",
+        } },
+        { kind: "research", research: {
+          title: "Does algorithmic trading improve liquidity?",
+          authors: "Terrence Hendershott, Charles M. Jones and Albert J. Menkveld",
+          year: 2011,
+          venue: "Journal of Finance 66(1), 1–33",
+          peerReviewed: true,
+          question: "Did more algorithmic trading cause better liquidity?",
+          methodology: "Used electronic message traffic as a measure of algorithmic trading, and the 2003 staggered start of NYSE autoquoting as a natural experiment.",
+          data: "A five-year panel of NYSE stocks.",
+          findings: "Algorithmic trading and liquidity were positively related. For large stocks, quoted and effective spreads narrowed and adverse selection fell after autoquoting.",
+          limitations: "Covers the early 2000s, before much modern HFT; the effects were clearest in large stocks.",
+          practicalMeaning: "Automation helped make trading cheaper in liquid shares. It does not show that every fast strategy helps.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/bla/jfinan/v66y2011i1p1-33.html",
+          verified: true,
+        } },
+        { kind: "research", research: {
+          title: "The high-frequency trading arms race: frequent batch auctions as a market design response",
+          authors: "Eric Budish, Peter Cramton and John Shim",
+          year: 2015,
+          venue: "Quarterly Journal of Economics 130(4), 1547–1621",
+          peerReviewed: true,
+          question: "Is the race for speed a result of market design, and what does it cost?",
+          methodology: "Millisecond-level exchange data on closely related instruments, plus a theoretical model of continuous trading.",
+          data: "Index futures and an index ETF traded on different exchanges.",
+          findings: "Correlations between related prices break down at very short horizons, creating mechanical arbitrage. Competition raised the speed needed to win but did not remove the opportunities. The model says these rents harm liquidity.",
+          limitations: "The size of the cost in other markets and its welfare effects are debated; batch auctions are a proposal.",
+          practicalMeaning: "Part of the spread pays for being sniped by faster traders. Market design, not just firms, decides how much.",
+          status: "disputed",
+          url: "https://ideas.repec.org/a/oup/qjecon/v130y2015i4p1547-1621.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "What is still argued about", blocks: [
+          { kind: "p", text: "Researchers still debate how much HFT liquidity is there in stress, and whether certain order types or data feeds give unfair advantages." },
+          { kind: "p", text: "Claims that HFT 'steals' a set amount from every investor are not supported by a single agreed number." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Institutional traders", view: "Hide intentions with algorithms and avoid predictable patterns that fast traders can learn." },
+          { name: "Market designers", view: "Propose speed bumps or batch auctions to reduce the value of tiny speed differences." },
+          { name: "Retail traders", view: "Do not compete on speed; use sensible limits and avoid trading through news." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Blaming HFT for every bad fill.", why: "Most bad fills come from spreads, depth and order type.", instead: "Check those first." },
+          { mistake: "Assuming HFT liquidity will always be there.", why: "Fast quoters can withdraw in seconds.", instead: "Plan for thin markets in stress." },
+          { mistake: "Trying to out-race professional firms.", why: "Their speed costs millions to build.", instead: "Compete on patience and analysis, not speed." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "HFT includes market making, arbitrage and latency arbitrage.",
+            "Evidence suggests automation narrowed spreads in liquid shares.",
+            "Stale quotes picked off by faster firms are a cost spreads must cover.",
+            "Many claims about HFT go beyond the evidence in both directions.",
+          ],
+          equations: [{ label: "Break-even half-spread", formula: "h = λⱼ·p·J ÷ (λᵢ + λⱼ·p)" }],
+          implications: ["Expect quotes to vanish around news.", "Judge costs by your own fills, not headlines."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Read a news article about HFT and list which claims cite evidence.",
+          "Watch a share's quote during a scheduled news release and note how fast it changes.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "classify",
+    id: "ms-hft-ex",
+    title: "Which strategy is it?",
+    prompt: "Sort each activity into the high-frequency strategy it describes.",
+    categories: [
+      { id: "mm", label: "Market making" },
+      { id: "arb", label: "Arbitrage" },
+      { id: "lat", label: "Latency arbitrage" },
+    ],
+    items: [
+      { id: "1", text: "Quoting a bid and an ask all day and earning the spread.", category: "mm", explain: "Providing liquidity on both sides." },
+      { id: "2", text: "Buying an ETF and selling its basket when the ETF is cheaper.", category: "arb", explain: "Trading away a price difference." },
+      { id: "3", text: "Hitting an old quote just after news, before its owner can cancel.", category: "lat", explain: "Winning a speed race to a stale quote." },
+      { id: "4", text: "Selling a share on one venue and buying it cheaper on another.", category: "arb", explain: "A cross-venue price difference." },
+      { id: "5", text: "Updating quotes many times a second to manage inventory.", category: "mm", explain: "Market making with fast updates." },
+    ],
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "What did Hendershott, Jones and Menkveld (2011) find?",
+      options: [
+        { id: "a", text: "Algorithmic trading widened spreads", explain: "They found narrower spreads in large stocks." },
+        { id: "b", text: "Algorithmic trading had no effect", explain: "They found a positive link." },
+        { id: "c", text: "More algorithmic trading went with better liquidity", explain: "Right, with a causal design using NYSE autoquoting." },
+        { id: "d", text: "High-frequency traders caused the 2010 flash crash and every crash since then", explain: "That is not what this paper studied." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q2",
+      prompt: "Why does a latency race widen spreads?",
+      options: [
+        { id: "a", text: "Quoters lose when sniped and charge for it", explain: "Right. Ordinary traders pay the wider spread." },
+        { id: "b", text: "Exchanges add a speed fee to every spread", explain: "There is no such fee in the spread." },
+        { id: "c", text: "Fast firms refuse to quote", explain: "Fast firms quote a lot." },
+        { id: "d", text: "Spreads widen whenever there are more traders in the market, whatever they do", explain: "More quoters usually narrow spreads." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "What is a stale quote?",
+      options: [
+        { id: "a", text: "A quote more than a day old", explain: "Staleness here is milliseconds." },
+        { id: "b", text: "A quote outside the spread", explain: "It can be at the best price." },
+        { id: "c", text: "A quote that the exchange has cancelled", explain: "A cancelled quote cannot trade." },
+        { id: "d", text: "A quote no longer matching the value after news", explain: "Right. It can be picked off before it is updated." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q4",
+      prompt: "Which statement about HFT is best supported?",
+      options: [
+        { id: "a", text: "It only harms investors", explain: "Evidence shows benefits too." },
+        { id: "b", text: "It has both benefits and costs", explain: "Right. Narrower spreads in some studies; sniping costs in others." },
+        { id: "c", text: "It only helps investors", explain: "Latency arbitrage is a cost." },
+        { id: "d", text: "It takes a fixed, well-known share of every single retail order", explain: "No such agreed number exists." },
+      ],
+      correct: "b",
+    },
+  ],
+  practical: {
+    title: "Claims and evidence",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Find two articles about high-frequency trading with opposite views.",
+      "For each claim, note whether it cites a study, data or nothing.",
+      "Compare with the two studies in this lesson.",
+    ],
+    reflectionPrompt: "Which claims could you check, and which were opinion?",
+  },
+  glossary: ["high-frequency-trading", "latency-arbitrage", "frequent-batch-auction"],
+  next: "ms-retail-fills",
+};
+
+export const MS10_RETAIL_FILLS: Lesson = {
+  id: "ms-retail-fills",
+  trackId: T,
+  order: 10,
+  format: "full",
+  title: "Payment for order flow and how retail orders get filled",
+  summary: "Where a retail order actually goes, what wholesalers and price improvement are, what payment for order flow is, and how rules differ between the US, UK and EU.",
+  minutes: 22,
+  objectives: [
+    "Trace a retail order from your app to its execution.",
+    "Explain internalisation by wholesalers and price improvement.",
+    "Explain payment for order flow and its conflict of interest.",
+    "State how the US, UK and EU treat payment for order flow.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "'Commission-free' does not mean free. How your order is filled decides part of what you pay." },
+        { kind: "p", text: "Research has found that the same order can get quite different prices at different brokers." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Retail order flow from zero",
+      blocks: [
+        { kind: "interactive", widget: "ms-fig-retail-route", title: "Where your order goes", caption: "A drawing. The broker sends your order to a wholesaler, which may fill it itself and pay the broker, or to an exchange." },
+        { kind: "defs", items: [
+          { term: "[[wholesaler|Wholesaler]]", text: "A large market-making firm that fills retail orders itself, off-exchange." },
+          { term: "[[internalisation|Internalisation]]", text: "Filling an order from the firm's own inventory instead of sending it to an exchange." },
+          { term: "[[price-improvement|Price improvement]]", text: "A fill better than the quoted bid or ask, often by a fraction of a cent." },
+          { term: "[[payment-for-order-flow|Payment for order flow]]", text: "Money a wholesaler pays a broker for sending it customers' orders." },
+        ] },
+        { kind: "p", text: "Wholesalers like retail orders because they are, on average, less informed than professional ones. Less adverse selection (lesson 2) lets them offer better prices and still profit." },
+        { kind: "callout", tone: "warn", title: "Watch out", text: "Payment for order flow is a conflict of interest: the broker is paid by the firm filling your order. Price improvement does not prove you got the best price." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Compare two brokers",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Leave the defaults: broker A gives back 20% of the half-spread, broker B 60%." },
+          { text: "Raise the order to 1,000 shares and the spread to 5 cents. The gap between brokers grows." },
+          { text: "Change the payment for order flow. Your fill does not change in this tool, but the broker's income does." },
+        ] },
+        { kind: "interactive", widget: "ms-retail", title: "Retail fill calculator", caption: "Made-up quotes and price improvement for two brokers. Measures each fill against the quote and against the mid." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "A fill, worked through",
+      blocks: [
+        { kind: "p", text: "You buy 300 shares at market. The quote is 25.00 / 25.04. The wholesaler fills you at 25.03, one cent better than the ask." },
+        { kind: "p", text: "Price improvement is 1 cent × 300 = 3 dollars. But the mid is 25.02, so you still paid 1 cent above the mid on each share." },
+        { kind: "callout", tone: "example", title: "Example", text: "A fill reported as 'improved' can still be far from the mid. Compare effective spreads, not just improvement." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: the evidence and the rules",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Payment for order flow and retail execution",
+          what: "Brokers routing retail orders to wholesalers who internalise them, often with price improvement, sometimes paying the broker for the flow.",
+          whyItExists: "Retail flow is cheap to trade against; wholesalers compete for it, and brokers use the payments to fund zero commissions.",
+          problemSolved: "It can give small orders prices inside the quoted spread without commissions.",
+          mechanics: "Broker sends the order; wholesaler fills it at or inside the quote; some of the spread is shared with the broker as payment.",
+          math: "Price improvement = (ask − fill price) × shares for a buy. Effective spread = 2 × |fill − mid|.",
+          howTradersUseIt: "Comparing brokers by execution quality reports and effective spreads, not just commissions.",
+          whenUseful: "When choosing a broker, or checking whether 'free' trading is cheap.",
+          whenItFails: "When a broker routes for the payment rather than for your price; disclosures can be hard to compare.",
+          limitations: "Execution quality varies by broker, share and order size; one study's numbers do not transfer directly.",
+          misconceptions: "That price improvement proves best execution, or that zero commission means no cost.",
+          realExample: "Quote 25.00 / 25.04, fill at 25.03 on 300 shares: 3 dollars of improvement, effective spread 2 cents.",
+          exercise: "In the calculator, find the improvement share at which broker A matches broker B's fill.",
+          practicalTest: "Explain why a broker's PFOF income could conflict with your interests.",
+        } },
+        { kind: "research", research: {
+          title: "The 'actual retail price' of equity trades",
+          authors: "Christopher Schwarz, Brad M. Barber, Xing Huang, Philippe Jorion and Terrance Odean",
+          year: 2025,
+          venue: "Journal of Finance 80(5), 2507–2541",
+          peerReviewed: true,
+          question: "Do different US retail brokers get different prices for the same orders?",
+          methodology: "Placed about 85,000 simultaneous market orders through six accounts at five brokers and compared execution quality.",
+          data: "Small retail market orders in US stocks.",
+          findings: "Excluding commissions, average round-trip costs ranged from about 0.07% to 0.46% across accounts. The differences came from wholesalers giving different brokers different prices; differences in payment for order flow did not explain them.",
+          limitations: "A specific period, set of brokers and order sizes; broker practices can change.",
+          practicalMeaning: "Execution quality can differ a lot between brokers even for identical orders, so 'commission-free' brokers are not all equally cheap.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/bla/jfinan/v80y2025i5p2507-2541.html",
+          verified: true,
+        } },
+        { kind: "list", items: [
+          "US: allowed, with disclosure. Brokers publish quarterly routing reports that show payments received (SEC Rule 606).",
+          "UK: since 2012 the UK regulator (the FSA, now the FCA) has said that payment for order flow is unlikely to be compatible with its rules on conflicts and inducements. (Unverified: not yet checked against the regulator's own text.)",
+          "EU: the revised MiFIR bans it for brokers serving retail and professional clients. Countries that already allowed it could exempt their firms until 30 June 2026.",
+        ] },
+        { kind: "deeper", title: "Sub-penny fills (US)", blocks: [
+          { kind: "p", text: "US quotes for shares above one dollar are in whole cents, but executions can be in fractions of a cent. Wholesalers' price improvement is often a small fraction of a cent." },
+          { kind: "p", text: "That makes improvement look generous in percentage terms while being small in money." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Execution-quality analysts", view: "Compare effective spreads across brokers for the same orders." },
+          { name: "Regulators", view: "Weigh lower retail costs against the conflict of interest PFOF creates." },
+          { name: "Cost-aware retail traders", view: "Read routing reports and test a broker's fills against the quote and mid." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Thinking zero commission means zero cost.", why: "You still pay the spread, minus any improvement.", instead: "Measure the effective spread on your fills." },
+          { mistake: "Taking 'price improvement' as proof of a good fill.", why: "It is measured against the quote, not the mid.", instead: "Compare your fill with the mid." },
+          { mistake: "Assuming all free brokers fill the same.", why: "Research found large differences.", instead: "Compare brokers' execution quality." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Many retail orders are filled by wholesalers, off-exchange.",
+            "Price improvement is measured against the quote; effective spread against the mid.",
+            "Payment for order flow is a conflict of interest that rules treat differently by region.",
+            "Execution quality can differ a lot between brokers.",
+          ],
+          equations: [
+            { label: "Price improvement (buy)", formula: "(ask − fill) × shares" },
+            { label: "Effective spread", formula: "2 × |fill − mid|" },
+          ],
+          implications: ["Judge brokers by execution, not just commission.", "Read routing disclosures where they exist."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Find out whether your broker receives payment for order flow.",
+          "For one past market order, compute the effective spread from the mid at the time.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-retail-fills-ex",
+    title: "Price improvement",
+    prompt: "You buy 300 shares at market. The quote is 25.00 / 25.04 and you are filled at 25.03. How much price improvement did you get, in dollars?",
+    unit: "dollars",
+    answer: 3,
+    tolerance: 0,
+    hint: "Improvement per share = ask − fill price. Multiply by the shares.",
+    solution: "25.04 − 25.03 = 0.01 per share. 0.01 × 300 = 3 dollars.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "What is payment for order flow?",
+      options: [
+        { id: "a", text: "Your commission to the broker", explain: "PFOF is paid to the broker by a third party." },
+        { id: "b", text: "A fee the exchange charges you", explain: "It is not an exchange fee." },
+        { id: "c", text: "Interest earned by the broker on the cash held in your account overnight", explain: "That is a different income source." },
+        { id: "d", text: "A wholesaler paying your broker for your orders", explain: "Right. That creates a conflict of interest." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q2",
+      prompt: "The quote is 10.00 / 10.02 and your buy fills at 10.015. What is the price improvement per share?",
+      options: [
+        { id: "a", text: "0.5 cent", explain: "Right. 10.02 − 10.015 = 0.005." },
+        { id: "b", text: "1.5 cents", explain: "That is the distance from the bid." },
+        { id: "c", text: "2 cents", explain: "That is the quoted spread." },
+        { id: "d", text: "None, because you paid more than the mid of the quote", explain: "Improvement is measured against the ask." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "How does the EU treat payment for order flow now?",
+      options: [
+        { id: "a", text: "Allowed with disclosure", explain: "That is the US approach." },
+        { id: "b", text: "Banned under the revised MiFIR", explain: "Right. A national exemption could last only until 30 June 2026." },
+        { id: "c", text: "Required for all brokers", explain: "No rule requires it." },
+        { id: "d", text: "Allowed only for crypto assets and nothing else", explain: "That is not the rule." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q4",
+      prompt: "Schwarz and co-authors (2025) placed identical orders at several brokers. What did they find?",
+      options: [
+        { id: "a", text: "All brokers got the same prices", explain: "They found large differences." },
+        { id: "b", text: "Differences were fully explained by payment for order flow", explain: "They found PFOF did not explain them." },
+        { id: "c", text: "Costs differed a lot between brokers", explain: "Right. Wholesalers gave different brokers different prices." },
+        { id: "d", text: "Exchange fills were always better than off-exchange fills for every order", explain: "That was not their finding." },
+      ],
+      correct: "c",
+    },
+  ],
+  practical: {
+    title: "Check your broker",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Find your broker's order-execution or routing disclosure.",
+      "Note whether it receives payment for order flow and from whom.",
+      "Note what it says about price improvement or execution quality.",
+    ],
+    reflectionPrompt: "How would you test whether your broker's fills are good?",
+  },
+  glossary: ["wholesaler", "internalisation", "price-improvement", "payment-for-order-flow"],
+  next: "ms-halts",
+};
+
+export const MS11_HALTS: Lesson = {
+  id: "ms-halts",
+  trackId: T,
+  order: 11,
+  format: "full",
+  title: "Circuit breakers and trading halts",
+  summary: "Why markets pause, how single-stock and market-wide circuit breakers work (US rules labelled), and what a halt means for your orders and stops.",
+  minutes: 22,
+  objectives: [
+    "Explain why exchanges halt trading and what a circuit breaker is.",
+    "Calculate a US Limit Up-Limit Down band.",
+    "Describe the US market-wide circuit breaker levels.",
+    "Explain what a halt and reopening mean for stops and open orders.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "In a halt you cannot trade, whatever your plan says. When trading restarts, the price can be far from where it stopped." },
+        { kind: "p", text: "Stops do not protect you while a market is closed, and the reopening often behaves like a gap." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Halts from zero",
+      blocks: [
+        { kind: "defs", items: [
+          { term: "[[trading-halt|Trading halt]]", text: "A pause in trading in one security or a whole market, for news, volatility or a technical problem." },
+          { term: "[[circuit-breaker|Circuit breaker]]", text: "A rule that pauses trading automatically when prices move too far, too fast." },
+          { term: "[[limit-up-limit-down|Limit Up-Limit Down (US)]]", text: "US single-stock bands around a recent average price; trading pauses if price stays at a band." },
+        ] },
+        { kind: "interactive", widget: "ms-fig-luld", title: "A band and a pause", caption: "A drawing of the US single-stock rule: price reaches the lower band, stays there, and trading pauses for five minutes before an auction reopens it." },
+        { kind: "list", items: [
+          "US single stocks: if price stays at a band for 15 seconds, trading pauses for five minutes, then reopens with an auction.",
+          "US whole market: if the S&P 500 falls 7% or 13% before 3:25 p.m. Eastern, trading halts for 15 minutes; a 20% fall halts it for the rest of the day.",
+          "Elsewhere: many European exchanges use short volatility auctions when a share moves beyond a range.",
+        ] },
+        { kind: "callout", tone: "warn", title: "Watch out", text: "A halt is a gap you can see coming but cannot trade through. Size positions so that a reopening far from your stop is survivable." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Calculate the bands",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Pick a $50 Tier 1 stock: the band is ±5%." },
+          { text: "Switch to Tier 2: ±10%. Then turn on the last 25 minutes: Tier 1 doubles." },
+          { text: "Move the S&P 500 fall past 7%, 13% and 20%, before and after 3:25 p.m." },
+          { text: "Finally, open the thin simulated book below and see how few orders there are to trade with when liquidity dries up." },
+        ] },
+        { kind: "interactive", widget: "ms-halts", title: "US halt calculator", caption: "US rules only, simplified: Limit Up-Limit Down bands by price and tier, and market-wide circuit breaker levels." },
+        { kind: "interactive", widget: "ms-book-thin", title: "A thin book in stress", caption: "The simulated order book with thin liquidity: wide spreads and few levels, like a market just before or after a halt." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "A band, worked through (US)",
+      blocks: [
+        { kind: "p", text: "A Tier 1 stock above $3 has a 5% band. Its reference price, the average of the last five minutes, is 80." },
+        { kind: "p", text: "The lower band is 80 × 0.95 = 76 and the upper band 84. If the best offer sits at 76 for 15 seconds, trading pauses." },
+        { kind: "callout", tone: "example", title: "Example", text: "A sell stop at 75 does nothing during the pause. If the stock reopens at 70, the stop fills near 70." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: do halts help?",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Circuit breakers and halts",
+          what: "Automatic pauses when prices move too far or too fast, plus discretionary halts for news or technical problems.",
+          whyItExists: "To give traders time to process information and to stop errors or panics feeding on themselves.",
+          problemSolved: "They can stop a disorderly market and allow an orderly reopening auction.",
+          mechanics: "US LULD: bands of 5%, 10%, 20% or the lesser of $0.15 and 75% around a five-minute average, doubled for many stocks in the last 25 minutes. A 15-second limit state leads to a five-minute pause.",
+          math: "Lower band = reference × (1 − band%); upper band = reference × (1 + band%).",
+          howTradersUseIt: "Avoiding market orders near bands, planning for gaps at reopenings, and knowing their market's halt rules.",
+          whenUseful: "On volatile news days and in small, fast-moving shares.",
+          whenItFails: "Pauses can concentrate orders at reopening; some argue they can draw prices towards the band as traders rush to act first.",
+          limitations: "Rules differ by country and change over time; check the current rules for your market.",
+          misconceptions: "That a halt protects your stop. Stops cannot fill while trading is paused.",
+          realExample: "Reference 80, Tier 1, 5% band: bands at 76 and 84.",
+          exercise: "In the calculator, find a price and tier whose band is a dollar amount rather than a percentage.",
+          practicalTest: "Explain what happens to a sell stop during a five-minute pause and at the reopening.",
+        } },
+        { kind: "research", research: {
+          title: "The Flash Crash: high-frequency trading in an electronic market",
+          authors: "Andrei Kirilenko, Albert S. Kyle, Mehrdad Samadi and Tugkan Tuzun",
+          year: 2017,
+          venue: "Journal of Finance 72(3), 967–998",
+          peerReviewed: true,
+          question: "How did different kinds of traders behave during the 6 May 2010 Flash Crash?",
+          methodology: "Classified traders in E-mini S&P 500 futures by their trading patterns and studied their behaviour before and during the crash.",
+          data: "Audit-trail data for the E-mini S&P 500 futures around 6 May 2010.",
+          findings: "A large automated selling programme was executed rapidly. The trading pattern of the most active intraday intermediaries, classed as high-frequency traders, did not change as prices fell.",
+          limitations: "One market on one extraordinary day.",
+          practicalMeaning: "Markets can fall very fast when large selling meets thin liquidity. Rules like single-stock bands were strengthened after this event.",
+          status: "replicated",
+          url: "https://econpapers.repec.org/RePEc:bla:jfinan:v:72:y:2017:i:3:p:967-998",
+          verified: true,
+        } },
+        { kind: "deeper", title: "News halts", blocks: [
+          { kind: "p", text: "Exchanges can also halt a single share while important news is released, so everyone gets it before trading resumes." },
+          { kind: "p", text: "Reopenings after news halts are usually run as auctions (lesson 6), and the price can jump a long way." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Risk managers", view: "Model halts and reopenings as gaps, and limit position size in shares prone to halts." },
+          { name: "Execution traders", view: "Avoid sending market orders when a share is near a band." },
+          { name: "Event traders", view: "Prepare limit orders for the reopening auction instead of chasing the first trade." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Assuming a stop will fill during a halt.", why: "Nothing trades during a halt.", instead: "Expect the stop to fill at or after the reopening price." },
+          { mistake: "Sending market orders into a reopening auction.", why: "They accept any auction price.", instead: "Use a limit order." },
+          { mistake: "Applying US halt rules to every market.", why: "Rules differ by country.", instead: "Check your exchange's own rules." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Halts pause trading for news, volatility or technical problems.",
+            "US LULD bands pause a stock that stays at a band for 15 seconds.",
+            "US market-wide breakers act at 7%, 13% and 20% falls in the S&P 500.",
+            "Stops cannot fill during a halt; reopenings behave like gaps.",
+          ],
+          equations: [{ label: "LULD bands (US)", formula: "reference × (1 ± band%)" }],
+          implications: ["Size positions for reopening gaps.", "Use limit orders near bands and in reopening auctions."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Look up your main exchange's halt or volatility-interruption rules.",
+          "Find one share that was halted recently and compare its last price before and first price after the halt.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-halts-ex",
+    title: "A US Limit Up-Limit Down band",
+    prompt: "A Tier 1 US stock above $3 has a 5% band. Its reference price is 80. What is the lower band?",
+    unit: "dollars",
+    answer: 76,
+    tolerance: 0,
+    hint: "Lower band = reference × (1 − 5%).",
+    solution: "80 × 0.95 = 76.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "A US stock reaches its lower LULD band and stays there for 15 seconds. What happens?",
+      options: [
+        { id: "a", text: "It is delisted", explain: "Delisting is a separate process." },
+        { id: "b", text: "Trading pauses for five minutes", explain: "Right. Then it reopens, usually with an auction." },
+        { id: "c", text: "Trading stops for the rest of the day", explain: "That is the market-wide level 3." },
+        { id: "d", text: "All sell orders are cancelled and all buy orders filled at the band", explain: "No such rule exists." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q2",
+      prompt: "The S&P 500 falls 8% at 11:00 a.m. Eastern. What happens under US rules?",
+      options: [
+        { id: "a", text: "Nothing", explain: "7% is the first level." },
+        { id: "b", text: "A halt for the rest of the day", explain: "That needs a 20% fall." },
+        { id: "c", text: "Only single stocks with bands can pause; the market keeps trading", explain: "The market-wide level 1 applies." },
+        { id: "d", text: "A 15-minute market-wide halt", explain: "Right. Level 1 before 3:25 p.m." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q3",
+      prompt: "Your sell stop is at 45 when a share is halted at 47. It reopens at 40. Where will the stop most likely fill?",
+      options: [
+        { id: "a", text: "Near 40", explain: "Right. The stop triggers at the reopening and fills at available prices." },
+        { id: "b", text: "At 45", explain: "Nothing traded at 45." },
+        { id: "c", text: "At 47", explain: "The stop had not triggered." },
+        { id: "d", text: "It cannot fill, because stops are always cancelled by every exchange during halts", explain: "Practice varies; it is not always cancelled." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q4",
+      prompt: "Which statement about halt rules is correct?",
+      options: [
+        { id: "a", text: "All countries use LULD", explain: "LULD is a US rule." },
+        { id: "b", text: "Halts protect stops", explain: "Stops cannot fill in a halt." },
+        { id: "c", text: "Rules differ by country", explain: "Right. Many European exchanges use volatility auctions instead." },
+        { id: "d", text: "Halts only happen because of technical faults at the exchange", explain: "They also happen for news and volatility." },
+      ],
+      correct: "c",
+    },
+  ],
+  practical: {
+    title: "Halt rules in your market",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Find your exchange's rules on halts, pauses or volatility interruptions.",
+      "Write down how long a pause lasts and how trading restarts.",
+      "Note what your broker does with stops during a halt.",
+    ],
+    reflectionPrompt: "How would a halt change the size of position you are willing to hold?",
+  },
+  glossary: ["trading-halt", "circuit-breaker", "limit-up-limit-down"],
+  next: null,
+};

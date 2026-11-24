@@ -1,0 +1,1397 @@
+import type { Lesson } from "../types";
+
+/*
+  Track 13: Market Structure, lessons 1–6. Venues, market makers and the
+  spread, the order book and priority, order types and their failure modes,
+  slippage and impact, and auctions. All tools run on simulated data. Rules
+  that differ by country are labelled; US specifics are marked "US".
+*/
+
+const T = "market-structure";
+
+export const MS1_VENUES: Lesson = {
+  id: "ms-venues",
+  trackId: T,
+  order: 1,
+  format: "full",
+  title: "Exchanges, OTC and dealer markets",
+  summary: "Where trades happen: order-driven exchanges where traders meet each other, and dealer (OTC) markets where you trade with a dealer.",
+  minutes: 18,
+  objectives: [
+    "Explain how an order-driven exchange differs from a dealer (OTC) market.",
+    "Say who your counterparty is in each kind of market.",
+    "Give examples of assets that trade mainly on exchanges and mainly OTC.",
+    "Explain why the same asset can trade in both kinds of market.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "The kind of market decides who you trade with, what prices you can see and what can go wrong. A quote on a screen means different things in different markets." },
+        { kind: "p", text: "Forex, most bonds and many derivatives trade over the counter. Most shares and futures trade on exchanges. Knowing which one you are in tells you what questions to ask your broker." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Two ways to organise a market",
+      blocks: [
+        { kind: "interactive", widget: "ms-fig-venues", title: "Exchange versus dealer market", caption: "A drawing. On an exchange, orders from many traders meet in one book. In a dealer market, each client trades with a dealer." },
+        { kind: "defs", items: [
+          { term: "[[order-driven-market|Order-driven market]]", text: "Buyers' and sellers' orders meet in a central [[order-book|order book]] and trade with each other." },
+          { term: "[[dealer-market|Dealer market]]", text: "Dealers quote prices and take the other side of every trade themselves. Also called quote-driven." },
+          { term: "[[otc|Over the counter]]", text: "Trading arranged directly between two parties, usually a client and a dealer, not on an exchange." },
+          { term: "[[request-for-quote|Request for quote]]", text: "You ask one or more dealers for a price for a given size, then accept one or walk away." },
+        ] },
+        { kind: "p", text: "On an exchange you usually do not know who traded with you. The exchange's clearing house then stands between buyer and seller." },
+        { kind: "p", text: "In a dealer market your counterparty is the dealer. Its quote can depend on who you are, how much you trade and how it feels about the market right now." },
+        { kind: "callout", tone: "key", title: "Key idea", text: "On an exchange you trade with other traders through a book. In a dealer market you trade with the dealer, at its price." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Compare the two for one order",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Start at 500 shares. Compare the book's average price with the dealer's quote." },
+          { text: "Raise the size step by step. The book's price gets worse as the order eats into more levels." },
+          { text: "Note that the dealer quotes one price for the whole size, but the rule it uses is its own." },
+        ] },
+        { kind: "interactive", widget: "ms-venues", title: "Exchange book or dealer quote", caption: "A simulated order book and a made-up dealer pricing rule. The point is the mechanism, not which one is cheaper in real life." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "One asset, two markets",
+      blocks: [
+        { kind: "p", text: "A large company's shares trade on its listing exchange and on other venues. A pension fund wanting a very large block might ask dealers for a price instead, so it does not move the public book." },
+        { kind: "p", text: "A retail forex trader sees one price from a broker. That broker may be the dealer itself, or it may pass the trade on to banks it deals with." },
+        { kind: "callout", tone: "example", title: "Example", text: "Same share, two routes: the exchange shows you the book and fills you against many sellers; the dealer gives you one price and takes the risk itself." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: what changes between the two",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Order-driven versus dealer markets",
+          what: "Two ways of organising trading: a central book of orders that trade with each other, or dealers who quote and take the other side.",
+          whyItExists: "Some assets have many traders and standard contracts, which suits a central book. Others are many different bonds or custom contracts that trade rarely, which suits dealers.",
+          problemSolved: "Both answer the question: how does a buyer find a seller at a fair price?",
+          mechanics: "Exchange: limit orders rest in a book; incoming orders trade against them by price, then time. Dealer: the dealer quotes a bid and an ask, trades at its own quote and manages the position it is left with.",
+          math: "Exchange cost for size Q = average price of the levels used − mid. Dealer cost for size Q = quoted price(Q) − mid, where the quote is set by the dealer.",
+          howTradersUseIt: "Choosing a route: small orders in liquid shares go to the book; large blocks or rarely traded bonds go to dealers by request for quote.",
+          whenUseful: "When deciding where to trade, and when judging whether a quote you see is firm and for what size.",
+          whenItFails: "Dealers can widen or pull quotes in stress; exchange books can thin out. Neither guarantees a price at any size.",
+          limitations: "Many real markets are hybrids: exchanges have designated market makers, and dealer markets have electronic platforms.",
+          misconceptions: "That OTC means unregulated. OTC dealers are usually regulated; what differs is how prices are formed and who the counterparty is.",
+          realExample: "Most shares and futures trade on exchanges; most forex, bonds and swaps trade over the counter.",
+          exercise: "In the tool, find the size at which the dealer's single price becomes cheaper than walking the simulated book.",
+          practicalTest: "Explain to someone who your counterparty is when you buy a share on an exchange, and when you trade forex with a dealing broker.",
+        } },
+        { kind: "callout", tone: "info", title: "Research note", text: "This lesson describes how markets are organised rather than a single study's findings. Later lessons cite research where it exists." },
+        { kind: "deeper", title: "Clearing: who stands behind the trade", blocks: [
+          { kind: "p", text: "On many exchanges a central counterparty becomes the buyer to every seller and the seller to every buyer. If one side fails, the clearing house steps in." },
+          { kind: "p", text: "In a bilateral OTC trade you carry the risk that the dealer fails. Some OTC markets, such as many standard swaps, are now centrally cleared too." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Institutional traders", view: "Choose the venue by size and urgency: the book for small, liquid trades; dealers or block venues for large ones." },
+          { name: "Bond and FX desks", view: "Ask several dealers for quotes at once and compare, because there is no single public book." },
+          { name: "Risk managers", view: "Track who the counterparty is and whether the trade is centrally cleared." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Assuming a forex quote is a public market price.", why: "In a dealer market the quote is the dealer's price for you.", instead: "Ask your broker how it executes and who takes the other side." },
+          { mistake: "Thinking a quote is good for any size.", why: "Book depth and dealer quotes are for a size.", instead: "Check the size shown, or ask for a quote at your size." },
+          { mistake: "Treating OTC as unregulated.", why: "Most dealers are regulated; the structure is what differs.", instead: "Ask about counterparty risk and clearing instead." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Order-driven exchanges match traders' orders in a central book.",
+            "Dealer (OTC) markets have dealers quote and take the other side.",
+            "Your counterparty, the prices you see and the risks differ between them.",
+            "Many markets are hybrids, and one asset can trade in both.",
+          ],
+          equations: [{ label: "Cost of a trade", formula: "cost per unit = price paid − mid" }],
+          implications: ["Know which kind of market you trade in.", "Check what size a price is good for."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Find out how your broker executes forex or CFD trades: as the dealer, or by passing them on.",
+          "Name two assets you are interested in and whether each trades mainly on an exchange or OTC.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "classify",
+    id: "ms-venues-ex",
+    title: "Exchange or dealer market?",
+    prompt: "Sort each description by the kind of market it describes.",
+    categories: [
+      { id: "ex", label: "Order-driven exchange" },
+      { id: "dealer", label: "Dealer (OTC) market" },
+    ],
+    items: [
+      { id: "1", text: "Your buy order trades against sellers' limit orders, best price first.", category: "ex", explain: "Orders meet each other in a book." },
+      { id: "2", text: "You ask three banks for a price on a bond and accept the best.", category: "dealer", explain: "A request for quote to dealers." },
+      { id: "3", text: "The firm quoting you takes the other side of your trade itself.", category: "dealer", explain: "That is what a dealer does." },
+      { id: "4", text: "Anyone can see the queue of buy and sell orders at each price.", category: "ex", explain: "A visible central order book." },
+      { id: "5", text: "Your price depends on who you are and how much you trade.", category: "dealer", explain: "Dealers can quote different clients differently." },
+    ],
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "You trade forex with a broker that acts as the dealer. Who is your counterparty?",
+      options: [
+        { id: "a", text: "Another retail trader on the same platform, matched through a central exchange book", explain: "A dealing broker takes the other side itself." },
+        { id: "b", text: "The central bank", explain: "Central banks are not counterparties to retail trades." },
+        { id: "c", text: "The broker acting as dealer", explain: "Right. In a dealer market you trade with the dealer." },
+        { id: "d", text: "Nobody until the trade settles", explain: "Every trade has a counterparty from the start." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q2",
+      prompt: "Why do many bonds trade over the counter rather than on an exchange?",
+      options: [
+        { id: "a", text: "There are many different bonds, and most trade rarely", explain: "Right. Thin, varied markets suit dealers." },
+        { id: "b", text: "Exchanges are not allowed to list bonds anywhere", explain: "Some bonds are listed; most trading is still OTC." },
+        { id: "c", text: "OTC trading has no costs", explain: "Dealers earn a spread." },
+        { id: "d", text: "Bond prices never change, so a public book is unnecessary", explain: "Bond prices move every day." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "Which statement about OTC markets is correct?",
+      options: [
+        { id: "a", text: "OTC means unregulated", explain: "Most OTC dealers are regulated firms." },
+        { id: "b", text: "OTC prices are always better than exchange prices for every size", explain: "Neither is always better." },
+        { id: "c", text: "OTC trades always go through a clearing house", explain: "Many are bilateral, though some are centrally cleared." },
+        { id: "d", text: "The counterparty is usually a dealer", explain: "Right. That is the defining feature." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q4",
+      prompt: "A quote shows a price and a size of 500. What does the size tell you?",
+      options: [
+        { id: "a", text: "The day's total volume", explain: "Volume is a separate figure." },
+        { id: "b", text: "How much is offered at that price right now", explain: "Right. A bigger order may get worse prices." },
+        { id: "c", text: "The most you are allowed to trade", explain: "You can trade more, at other prices." },
+        { id: "d", text: "The number of traders who are currently connected to the market", explain: "It is quantity, not people." },
+      ],
+      correct: "b",
+    },
+  ],
+  practical: {
+    title: "Where does it trade?",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "Pick a share, a currency pair and a government bond.",
+      "For each, find out where it mainly trades: on an exchange or OTC.",
+      "Note who the counterparty would be if you traded it through your broker.",
+    ],
+    reflectionPrompt: "Which of the three gives you the least information about other traders' orders?",
+  },
+  glossary: ["order-driven-market", "dealer-market", "request-for-quote"],
+  next: "ms-market-makers",
+};
+
+export const MS2_MARKET_MAKERS: Lesson = {
+  id: "ms-market-makers",
+  trackId: T,
+  order: 2,
+  format: "full",
+  title: "Market makers, liquidity and the spread",
+  summary: "Who provides liquidity, what the bid-ask spread pays for, and why it widens when risk rises.",
+  minutes: 22,
+  objectives: [
+    "Explain what market makers and other liquidity providers do.",
+    "Name the three main components of the bid-ask spread.",
+    "Calculate the quoted and the effective spread.",
+    "Explain why spreads widen when more traders are better informed or liquidity is thin.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "Every time you buy at the ask and later sell at the bid, you pay the spread. For frequent traders it is often the largest cost." },
+        { kind: "p", text: "Knowing what the spread pays for explains why it widens at the open, around news and in small companies' shares." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Market makers from zero",
+      blocks: [
+        { kind: "p", text: "A [[market-maker|market maker]] quotes both a bid and an ask, ready to buy or sell. It earns the spread when buyers and sellers arrive evenly." },
+        { kind: "p", text: "Any trader whose resting limit order waits in the book is a [[liquidity-provider|liquidity provider]]. A trader who sends a market order takes that liquidity." },
+        { kind: "interactive", widget: "ms-fig-spread", title: "What the spread pays for", caption: "A drawing of the bid, mid and ask. The spread covers processing costs, inventory risk and losses to better-informed traders. The sizes are illustrative." },
+        { kind: "defs", items: [
+          { term: "[[order-processing-cost|Order processing]]", text: "Fees, systems and staff: the cost of handling each trade." },
+          { term: "[[inventory-risk|Inventory risk]]", text: "A market maker left holding shares can lose if the price moves before it unwinds them." },
+          { term: "[[adverse-selection|Adverse selection]]", text: "Some traders know more. The market maker tends to lose to them, so it charges everyone a little more." },
+          { term: "[[quoted-spread|Quoted spread]]", text: "Ask − bid, as shown on the screen." },
+          { term: "[[effective-spread|Effective spread]]", text: "2 × |price you paid − mid|: what you really paid, including any price improvement." },
+        ] },
+        { kind: "callout", tone: "key", title: "Key idea", text: "The spread is a price for immediacy. It widens when the market maker's risk rises: more informed traders, more volatility or less depth." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Build a spread",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Set informed traders to 0%. The spread only covers processing costs." },
+          { text: "Raise informed traders to 40%. Watch the adverse-selection part grow." },
+          { text: "Widen the value range: more uncertainty means a wider spread for the same share of informed traders." },
+          { text: "Move the inventory slider. Both quotes shift, but the spread itself does not change in this model." },
+        ] },
+        { kind: "interactive", widget: "ms-spread", title: "Spread builder", caption: "A simplified Glosten–Milgrom-style model with made-up numbers. The market maker sets quotes so that, on average, it breaks even." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "Quoted and effective spread",
+      blocks: [
+        { kind: "p", text: "A share is quoted 49.98 bid, 50.02 ask. The quoted spread is 4 cents and the mid is 50.00." },
+        { kind: "p", text: "Your buy order fills at 50.01, one cent inside the ask. The effective spread is 2 × (50.01 − 50.00) = 2 cents." },
+        { kind: "callout", tone: "example", title: "Example", text: "You paid half the quoted spread. Effective spread measures what you actually paid; quoted spread is only the starting point." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: why informed traders create a spread",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Bid-ask spread components",
+          what: "The gap between the best price to sell (bid) and the best price to buy (ask), split into order processing, inventory and adverse-selection parts.",
+          whyItExists: "Someone has to be ready to trade at once. That costs money and carries risk, and the spread pays for it.",
+          problemSolved: "It explains why spreads differ between shares and over time.",
+          mechanics: "A market maker who sells to a buyer worries the buyer knows something. It sets the ask at what the share is worth given that someone wants to buy, and the bid likewise for sellers.",
+          math: "Glosten–Milgrom: ask = E[value | a buy arrives], bid = E[value | a sell arrives]. With a share μ of informed traders and values V_L or V_H equally likely, ask = mid + μ × (V_H − V_L) ÷ 2.",
+          howTradersUseIt: "Trade when spreads are normal; avoid market orders when they are wide; measure costs with the effective spread.",
+          whenUseful: "When judging trading costs, or why a quote widened around news.",
+          whenItFails: "Real spreads also depend on tick size, competition between market makers and fees, which the simple model leaves out.",
+          limitations: "Splitting a real spread into parts needs a statistical model, and different models give different splits.",
+          misconceptions: "That a wide spread means the market maker is greedy. Often it means risk, informed trading or thin competition.",
+          realExample: "Quote 49.98 / 50.02, fill at 50.01: quoted spread 4 cents, effective spread 2 cents.",
+          exercise: "In the spread builder, find the share of informed traders that doubles the spread at a 1-cent processing cost.",
+          practicalTest: "Explain why a spread widens just before a company's earnings release.",
+        } },
+        { kind: "research", research: {
+          title: "Bid, ask and transaction prices in a specialist market with heterogeneously informed traders",
+          authors: "Lawrence R. Glosten and Paul R. Milgrom",
+          year: 1985,
+          venue: "Journal of Financial Economics 14(1), 71–100",
+          peerReviewed: true,
+          question: "Can a bid-ask spread arise from information alone, even if the market maker has no costs and makes no profit?",
+          methodology: "A theoretical model: a risk-neutral, competitive specialist trades with a mix of informed and uninformed traders and sets quotes to break even.",
+          data: "None; it is a theory paper.",
+          findings: "Traders with better information lead to a positive spread even when the specialist is risk-neutral and earns zero expected profit. Transaction prices carry information over time.",
+          limitations: "A stylised model: one asset, one trade at a time, and fixed trade sizes.",
+          practicalMeaning: "Part of every spread is the price of trading with someone who may know more. Spreads widen when information risk rises.",
+          status: "replicated",
+          url: "https://econpapers.repec.org/RePEc:eee:jfinec:v:14:y:1985:i:1:p:71-100",
+          verified: true,
+        } },
+        { kind: "research", research: {
+          title: "The components of the bid-ask spread: a general approach",
+          authors: "Roger D. Huang and Hans R. Stoll",
+          year: 1997,
+          venue: "Review of Financial Studies 10(4), 995–1034",
+          peerReviewed: true,
+          question: "How large is each part of the spread: order processing, inventory and adverse selection?",
+          methodology: "A time-series model of trades and quotes that separates all three components and the realised spread.",
+          data: "Trades and quotes for US stocks.",
+          findings: "Order processing was the largest component in their estimates; adverse selection and inventory were smaller but significant. The split varied with trade size.",
+          limitations: "Results depend on the model's assumptions and on 1990s US markets.",
+          practicalMeaning: "Spreads are not only about information. Costs and inventory matter too, and their weights can change.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/oup/rfinst/v10y1997i4p995-1034.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "Inventory: why quotes shift", blocks: [
+          { kind: "p", text: "A market maker that has bought a lot wants to sell. It may lower both quotes a little: buyers get a slightly better ask, and sellers a slightly worse bid." },
+          { kind: "p", text: "That shifts where the market maker sits, not always how wide the spread is. The tool shows a made-up version of this skew." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Execution traders", view: "Measure effective and realised spreads on their own fills, not the quoted spread on the screen." },
+          { name: "Market makers", view: "Widen quotes ahead of news and when inventory builds, and narrow them when flow is balanced." },
+          { name: "Active retail traders", view: "Avoid trading in the first minutes and around releases, when spreads are often widest." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Ignoring the spread because there is no commission.", why: "You pay it on every round trip.", instead: "Count half the spread on entry and half on exit as a cost." },
+          { mistake: "Using market orders when the spread is wide.", why: "You pay the whole wide half-spread at once.", instead: "Use a limit order or wait for normal conditions." },
+          { mistake: "Judging costs by the quoted spread only.", why: "Your fill may be inside or outside the quote.", instead: "Measure the effective spread from your fill and the mid." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Market makers and other liquidity providers rest orders; takers pay the spread.",
+            "The spread pays for order processing, inventory risk and adverse selection.",
+            "More informed trading or uncertainty means a wider spread.",
+            "The effective spread measures what you actually paid.",
+          ],
+          equations: [
+            { label: "Quoted spread", formula: "ask − bid" },
+            { label: "Effective spread", formula: "2 × |price paid − mid|" },
+          ],
+          implications: ["Treat the spread as a cost on every trade.", "Expect wider spreads around news and in thin markets."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Note the quoted spread of one share at the open, at midday and near the close.",
+          "Compute the effective spread for a fill of your own, or a made-up one, from the mid at the time.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-market-makers-ex",
+    title: "Effective spread",
+    prompt: "The quote is 49.98 bid, 50.02 ask. Your buy order fills at 50.01. What is the effective spread, in cents?",
+    unit: "cents",
+    answer: 2,
+    tolerance: 0,
+    hint: "Find the mid first. Effective spread = 2 × |price paid − mid|.",
+    solution: "Mid = 50.00. Effective spread = 2 × (50.01 − 50.00) = 0.02, which is 2 cents.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Which part of the spread comes from trading with better-informed traders?",
+      options: [
+        { id: "a", text: "Order processing", explain: "That covers fees and systems." },
+        { id: "b", text: "Inventory risk", explain: "That covers holding a position while price moves." },
+        { id: "c", text: "Adverse selection", explain: "Right. The market maker tends to lose to informed traders." },
+        { id: "d", text: "The commission charged by your broker on each order you place", explain: "Commission is separate from the spread." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q2",
+      prompt: "The quote is 10.00 / 10.04 and you buy at 10.03. What is the effective spread?",
+      options: [
+        { id: "a", text: "4 cents", explain: "That is the quoted spread." },
+        { id: "b", text: "3 cents", explain: "That is the distance from the bid, not twice the distance from the mid." },
+        { id: "c", text: "1 cent", explain: "That is only the distance from the mid, before doubling." },
+        { id: "d", text: "2 cents, from 2 × (10.03 − 10.02)", explain: "Right. Mid 10.02, so 2 × 0.01 = 2 cents." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q3",
+      prompt: "Just before a company releases earnings, its spread widens. What is the most likely reason?",
+      options: [
+        { id: "a", text: "Market makers face more risk of trading with people who know more", explain: "Right. Information risk rises before news." },
+        { id: "b", text: "The exchange raises its fees just before every earnings release", explain: "Fees do not change for one release." },
+        { id: "c", text: "Fewer shares exist", explain: "The number of shares does not change." },
+        { id: "d", text: "Spreads always widen at random", explain: "Widening around news has a clear reason." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q4",
+      prompt: "Who is a liquidity provider?",
+      options: [
+        { id: "a", text: "Only the exchange itself", explain: "The exchange runs the book; traders provide liquidity." },
+        { id: "b", text: "Anyone whose limit order rests in the book", explain: "Right. Resting orders are liquidity others can take." },
+        { id: "c", text: "Anyone who sends a market order", explain: "Market orders take liquidity." },
+        { id: "d", text: "Only banks that are licensed by the central bank to deal in that market", explain: "Many kinds of traders provide liquidity." },
+      ],
+      correct: "b",
+    },
+  ],
+  practical: {
+    title: "Watch a spread",
+    instructions: "Observation only. Do not place any trades.",
+    steps: [
+      "Pick a large and a small company's share.",
+      "Write down each one's bid and ask five times during a day.",
+      "Compute the spread as a percentage of the mid each time.",
+    ],
+    reflectionPrompt: "Which share was cheaper to trade, and when in the day was each cheapest?",
+  },
+  glossary: ["liquidity-provider", "order-processing-cost", "inventory-risk", "adverse-selection", "quoted-spread", "effective-spread"],
+  next: "ms-order-book",
+};
+
+export const MS3_ORDER_BOOK: Lesson = {
+  id: "ms-order-book",
+  trackId: T,
+  order: 3,
+  format: "full",
+  title: "The order book, depth and price-time priority",
+  summary: "How a limit order book is laid out, what depth means, and the rule that decides who trades first.",
+  minutes: 25,
+  objectives: [
+    "Read an order book ladder: best bid, best ask, spread and depth.",
+    "Explain price-time priority and why your place in the queue matters.",
+    "Explain partial fills and the time-and-sales tape.",
+    "Use the simulator to rest, fill and cancel your own orders.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "Most shares and futures trade in a limit order book. If you understand the book, you can predict what your order will do before you send it." },
+        { kind: "p", text: "The priority rule explains why a limit order at the best price can still sit unfilled while trades happen at that price." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "The book from zero",
+      blocks: [
+        { kind: "interactive", widget: "ms-fig-ladder", title: "An order book ladder", caption: "A drawing. Asks (sell orders) above, bids (buy orders) below; the bars show how much waits at each price." },
+        { kind: "defs", items: [
+          { term: "[[top-of-book|Top of book]]", text: "The best bid and best ask: the prices a small market order would get now." },
+          { term: "[[market-depth|Depth]]", text: "How much is waiting at each price beyond the top." },
+          { term: "[[price-time-priority|Price-time priority]]", text: "Better prices trade first; at the same price, earlier orders trade first." },
+          { term: "[[queue-position|Queue position]]", text: "How many orders are ahead of yours at your price." },
+          { term: "[[time-and-sales|Time and sales]]", text: "The list of every trade: time, price, size and, often, which side was the aggressor." },
+        ] },
+        { kind: "interactive", widget: "ms-fig-queue", title: "Who trades first", caption: "A drawing. Three sell orders wait at the best price in arrival order. An incoming buy order trades with the first one." },
+        { kind: "p", text: "A trade always happens at the resting order's price. The order that arrives and trades at once is the aggressor, or taker." },
+        { kind: "p", text: "If your order is bigger than the first resting order, it trades with the next one too. Each piece is a [[partial-fill|partial fill]] for the resting side." },
+        { kind: "callout", tone: "key", title: "Key idea", text: "Price first, then time. Joining a long queue at the best price can mean waiting a long time, or never filling." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Trade in the simulated book",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Send a buy limit order a few cents below the mid. It rests in the book; note its queue position." },
+          { text: "Press Others trade a few times. Watch the tape and whether your order fills." },
+          { text: "Send a limit order at the best ask or above. It trades at once, at the resting price." },
+          { text: "Cancel a resting order from the list under the ticket." },
+        ] },
+        { kind: "interactive", widget: "ms-book", title: "Order book simulator", caption: "A simulated book with simulated participants: a market maker, limit-order traders and small market orders. Matching uses price-time priority. Nothing here is a real market." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "Who gets filled",
+      blocks: [
+        { kind: "p", text: "Three sell orders wait at 50.01: A (100 shares, arrived first), then B (200) and C (100). Another sells 300 at 50.02." },
+        { kind: "p", text: "A buy market order for 350 takes A's 100 and B's 200 at 50.01, then 50 at 50.02. C waits: it was behind B in the queue." },
+        { kind: "callout", tone: "example", title: "Example", text: "C was at the best price but never traded, because others were earlier. Being at the best price is not the same as being filled." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: matching engines",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Limit order book with price-time priority",
+          what: "A list of resting buy and sell limit orders, sorted by price and then by arrival time, matched by an exchange's engine.",
+          whyItExists: "It lets many traders trade with each other fairly and transparently, without a dealer in the middle.",
+          problemSolved: "It decides, for every incoming order, who trades and at what price.",
+          mechanics: "An incoming order trades against the best opposite price, oldest order first, until it is filled or no longer marketable. Any limit remainder rests in time order at its price.",
+          math: "Average fill price = Σ(price × quantity) ÷ Σ quantity across the fills. Spread = best ask − best bid.",
+          howTradersUseIt: "Joining the queue early, improving the price by one tick to jump ahead, or crossing the spread when speed matters.",
+          whenUseful: "Whenever you use a limit order and want to know your chance of being filled.",
+          whenItFails: "Displayed depth can be cancelled in an instant; a book that looks deep can thin out when you need it.",
+          limitations: "Some venues use other rules, such as pro-rata allocation in some futures, or size priority. The simulator uses price-time only.",
+          misconceptions: "That a trade at your limit price means your order filled. Others ahead of you in the queue may have filled instead.",
+          realExample: "Orders A, B and C at 50.01; a buy for 350 fills A and B, then moves to 50.02, leaving C unfilled.",
+          exercise: "In the simulator, rest an order at the best bid and count how many rounds pass before it fills.",
+          practicalTest: "Explain why improving your bid by one tick puts you first in the queue.",
+        } },
+        { kind: "callout", tone: "info", title: "Research note", text: "This lesson explains the matching rule. It is a venue rule, not a research finding, so no study is summarised here." },
+        { kind: "deeper", title: "Pro-rata and other allocation rules", blocks: [
+          { kind: "p", text: "Some futures markets split an incoming order across all resting orders at the best price in proportion to their size. That rewards size over speed." },
+          { kind: "p", text: "Under pro-rata rules traders may post more than they want, expecting only part to fill. Rules shape behaviour." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Passive execution", view: "Rest limit orders early to get a good queue position, and accept the risk of not filling." },
+          { name: "Aggressive execution", view: "Cross the spread when the cost of missing the trade is larger than the spread." },
+          { name: "Tape readers", view: "Watch time and sales to see whether buyers or sellers are the aggressors." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Assuming you are filled because the price touched your limit.", why: "Orders ahead of you in the queue fill first.", instead: "Check your order status, not the chart." },
+          { mistake: "Treating displayed depth as guaranteed.", why: "Resting orders can be cancelled at any moment.", instead: "Assume depth can shrink when you need it." },
+          { mistake: "Cancelling and re-sending a resting order to change a detail.", why: "A new order goes to the back of the queue.", instead: "Know which changes keep your place on your venue." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "The book shows bids below, asks above, and the size at each price.",
+            "Price-time priority: best price first, then earliest order.",
+            "A trade happens at the resting order's price.",
+            "Large orders take several orders and can leave partial fills.",
+          ],
+          equations: [
+            { label: "Spread", formula: "best ask − best bid" },
+            { label: "Average fill price", formula: "Σ(price × qty) ÷ Σ qty" },
+          ],
+          implications: ["Your queue position decides when a limit order fills.", "Depth can disappear; do not rely on it."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Open a level 2 or depth view for one share, if your platform has one, and write down the top three levels on each side.",
+          "Watch the time-and-sales list for five minutes and note whether more trades hit the bid or lift the ask.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "order",
+    id: "ms-order-book-ex",
+    title: "Put the sell orders in priority order",
+    prompt: "These sell orders rest in the book. Put them in the order a large buy market order would trade with them.",
+    items: [
+      { id: "c", text: "Sell 100 at 50.01, arrived 10:00:02" },
+      { id: "b", text: "Sell 200 at 50.01, arrived 10:00:09" },
+      { id: "a", text: "Sell 100 at 50.02, arrived 10:00:05" },
+      { id: "d", text: "Sell 300 at 50.03, arrived 10:00:01" },
+    ],
+    explanation: "The lowest asks trade first. At 50.01 the 10:00:02 order came before the 10:00:09 one. Arrival time only matters within a price.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Two buy orders rest at 49.99. One arrived at 10:01, the other at 10:00. A sell market order arrives. Which trades first?",
+      options: [
+        { id: "a", text: "The 10:00 order", explain: "Right. Same price, so the earlier order is first." },
+        { id: "b", text: "The 10:01 order", explain: "It arrived later." },
+        { id: "c", text: "The larger of the two orders, whichever arrived first", explain: "Size does not set priority under price-time rules." },
+        { id: "d", text: "Both split it equally", explain: "That is pro-rata, used on some futures venues, not price-time." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q2",
+      prompt: "You send a buy limit at 50.05 while the best ask is 50.02. At what price do you trade?",
+      options: [
+        { id: "a", text: "50.05, your limit", explain: "Trades happen at the resting order's price." },
+        { id: "b", text: "The mid between the bid and the ask, rounded to a cent", explain: "Books do not trade at the mid by default." },
+        { id: "c", text: "50.02, at least for the first shares", explain: "Right. You get the resting price; your limit is the worst you accept." },
+        { id: "d", text: "No trade happens", explain: "Your order is marketable, so it trades." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q3",
+      prompt: "A trade printed at your limit price but your order did not fill. Why?",
+      options: [
+        { id: "a", text: "The exchange made an error", explain: "This is normal behaviour." },
+        { id: "b", text: "Orders ahead of you in the queue filled", explain: "Right. Others at the same price were earlier." },
+        { id: "c", text: "Limit orders only fill at the close", explain: "They can fill at any time." },
+        { id: "d", text: "Your order was hidden from the book and could not be matched by the engine", explain: "A normal limit order is visible and matchable." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q4",
+      prompt: "What does market depth show?",
+      options: [
+        { id: "a", text: "How far price has moved today", explain: "That is the day's range." },
+        { id: "b", text: "The number of traders watching", explain: "Depth is quantity at prices." },
+        { id: "c", text: "Tomorrow's likely price range, based on today's orders", explain: "Depth is a snapshot, not a forecast." },
+        { id: "d", text: "How much is waiting to trade at each price", explain: "Right. It is the size at each level." },
+      ],
+      correct: "d",
+    },
+  ],
+  practical: {
+    title: "Queue position in practice",
+    instructions: "Use the simulator only. Do not place real trades.",
+    steps: [
+      "In the simulator, rest a buy order at the best bid and note its queue position.",
+      "Press Others trade until it fills or ten rounds pass.",
+      "Repeat with an order one cent better than the best bid.",
+    ],
+    reflectionPrompt: "How much did one cent of price buy you in time to fill?",
+  },
+  glossary: ["top-of-book", "market-depth", "queue-position", "time-and-sales"],
+  next: "ms-order-types",
+};
+
+export const MS4_ORDER_TYPES: Lesson = {
+  id: "ms-order-types",
+  trackId: T,
+  order: 4,
+  format: "full",
+  title: "Order types and how each can fail",
+  summary: "Market, limit, stop, stop-limit, IOC, FOK and iceberg orders: what each guarantees, and the way each one lets you down.",
+  minutes: 26,
+  objectives: [
+    "Describe what market, limit, stop and stop-limit orders do.",
+    "Explain time-in-force instructions: day, IOC and FOK.",
+    "Explain what an iceberg order shows and what it gives up.",
+    "State the main way each order type can fail, especially stops in gaps.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "Every order type trades one risk for another. A market order risks the price; a limit order risks not trading at all." },
+        { kind: "p", text: "Many losses that feel like bad luck are order types doing exactly what they were built to do, at the worst moment." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Order types from zero",
+      blocks: [
+        { kind: "defs", items: [
+          { term: "[[market-order|Market order]]", text: "Trade now at the best prices available. Guarantees (almost) a fill, not a price." },
+          { term: "[[limit-order|Limit order]]", text: "Trade only at your price or better. Guarantees a price, not a fill." },
+          { term: "[[stop-order|Stop order]]", text: "Waits until price reaches a trigger, then becomes a market order." },
+          { term: "[[stop-limit-order|Stop-limit order]]", text: "Waits for a trigger, then becomes a limit order. May never fill." },
+          { term: "[[time-in-force|Time in force]]", text: "How long an order stays live: for the day, or only for an instant." },
+          { term: "[[immediate-or-cancel|IOC]]", text: "Immediate or cancel: fill what you can now, cancel the rest." },
+          { term: "[[fill-or-kill|FOK]]", text: "Fill or kill: fill the whole order now, or nothing." },
+          { term: "[[iceberg-order|Iceberg]]", text: "Shows only part of its size; the rest is hidden and refills the shown part." },
+        ] },
+        { kind: "interactive", widget: "ms-fig-stop-gap", title: "A stop in a gap", caption: "A drawing. Price gaps past the stop: the stop fills far below it, and a stop-limit at the stop price does not fill at all." },
+        { kind: "callout", tone: "warn", title: "Safety-critical", text: "A stop is not a guaranteed exit price. In a gap or a fast market it fills at the next available price, which can be far beyond your stop." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Make each order type fail in the simulator",
+      blocks: [
+        { kind: "step-list", items: [
+          { title: "Stop", text: "Place a sell stop a few cents below the mid. Press ×10 until it triggers and compare its fill with its trigger." },
+          { title: "Stop-limit", text: "Place a sell stop-limit with the limit at the trigger. When price falls fast it may rest unfilled." },
+          { title: "FOK", text: "Send a buy limit FOK for more than the size at the best ask. Nothing trades." },
+          { title: "IOC", text: "Send the same order as IOC. Part fills; the rest is cancelled." },
+          { title: "Iceberg", text: "Rest a big limit order as an iceberg showing 50. Only 50 appears in the ladder." },
+        ] },
+        { kind: "interactive", widget: "ms-book-types", title: "Order types in the simulator", caption: "The same simulated book, opened on a stop order. Every order type uses the same matching engine." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "A stop after bad news",
+      blocks: [
+        { kind: "p", text: "You hold a share bought at 40 with a sell stop at 38. Overnight the company warns on profits. The share opens at 33." },
+        { kind: "p", text: "Your stop triggers at the open and becomes a market order. It fills near 33, not 38: a loss of about 7 per share instead of the 2 you planned." },
+        { kind: "callout", tone: "example", title: "Example", text: "With a stop-limit at 38 you would not have sold at all. You would still hold the share at 33, with no exit." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: what each order guarantees",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Order types and failure modes",
+          what: "Instructions that trade off certainty of price against certainty of execution, plus rules for how long an order lives and what it shows.",
+          whyItExists: "Traders need different things: speed, a price limit, an exit if price moves, or to hide size.",
+          problemSolved: "They let you say what matters most for this trade: price, fill or secrecy.",
+          mechanics: "Market: trade through the book now. Limit: trade only at your price or better, rest the rest. Stop: becomes market at trigger. Stop-limit: becomes limit at trigger. IOC: cancel the unfilled part at once. FOK: all or nothing. Iceberg: refill a shown slice from hidden size.",
+          math: "Stop slippage = trigger price − fill price (for a sell). Gap loss = entry − open price, not entry − stop.",
+          howTradersUseIt: "Limits for entries, stops for exits with a planned buffer, IOC/FOK to avoid leaving orders behind, icebergs for large size.",
+          whenUseful: "Choose the order type by asking: what would hurt more here, a bad price or no trade?",
+          whenItFails: "Market: thin books and wide spreads. Limit: price never comes back. Stop: gaps and fast markets. Stop-limit: triggered but unfilled. FOK: cancelled. Iceberg: each refill loses its queue place on many venues.",
+          limitations: "Which price triggers a stop (last trade, bid or ask) and which order types exist depend on the broker and venue.",
+          misconceptions: "That a stop guarantees your exit price. Only a guaranteed stop, where offered and paid for, does that.",
+          realExample: "A sell stop at 38 after a gap open at 33 fills near 33.",
+          exercise: "In the simulator, make a stop-limit trigger without filling.",
+          practicalTest: "For each order type, name one market situation where it is the wrong choice.",
+        } },
+        { kind: "callout", tone: "info", title: "Research note", text: "These are venue and broker rules, not research findings. Check your broker's own order-type documentation." },
+        { kind: "deeper", title: "What triggers a stop", blocks: [
+          { kind: "p", text: "Brokers differ: some trigger on the last trade, others on the bid (for sells) or the ask (for buys). A wide spread can trigger an ask-based stop with no trade at that price." },
+          { kind: "p", text: "Some brokers also hold stops on their own systems, not at the exchange, and send a market order only when triggered." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Risk-first traders", view: "Size positions so that a gap well beyond the stop is survivable, because the stop is not a guarantee." },
+          { name: "Execution desks", view: "Use IOC and limit prices on aggressive orders so nothing trades far from the quote by accident." },
+          { name: "Large-order traders", view: "Use icebergs or algorithms to hide size, accepting slower fills." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Treating the stop price as the worst-case exit.", why: "Gaps and fast markets fill stops beyond them.", instead: "Plan for gap risk in your position size." },
+          { mistake: "Using a stop-limit to avoid slippage on an exit.", why: "It may not fill at all when price runs past the limit.", instead: "Decide whether missing the exit is worse than a bad fill." },
+          { mistake: "Sending market orders in thin, wide markets.", why: "The order can walk deep into the book.", instead: "Use a marketable limit order with a price cap." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Market orders give a fill, not a price; limits give a price, not a fill.",
+            "A stop becomes a market order and can fill far beyond its trigger.",
+            "A stop-limit can trigger and never fill.",
+            "IOC cancels the unfilled part; FOK cancels everything unless all fills.",
+            "Icebergs hide size but often lose queue place on each refill.",
+          ],
+          equations: [{ label: "Stop slippage (sell)", formula: "trigger − fill price" }],
+          implications: ["Choose the order type by which failure you can live with.", "Never size a position as if the stop were guaranteed."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Find your broker's page on order types and note what triggers a stop.",
+          "Check whether your broker offers guaranteed stops, and what they cost.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "match",
+    id: "ms-order-types-ex",
+    title: "Match each order to the way it fails",
+    prompt: "Match each order type with its main failure mode.",
+    pairs: [
+      { id: "m", left: "Market order", right: "Fills at a poor price in a thin or fast market" },
+      { id: "l", left: "Limit order", right: "Price never reaches the limit, so it never fills" },
+      { id: "s", left: "Stop order", right: "Triggers in a gap and fills far beyond the stop" },
+      { id: "sl", left: "Stop-limit order", right: "Triggers, then rests unfilled as price runs away" },
+      { id: "f", left: "Fill-or-kill", right: "Cancelled completely if the whole size is not there" },
+      { id: "i", left: "Iceberg", right: "Each refilled slice goes to the back of the queue" },
+    ],
+    explanation: "Each order type protects against one risk by accepting another. Knowing the failure mode is how you choose.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Your sell stop is at 38. The share gaps open at 33. What happens?",
+      options: [
+        { id: "a", text: "You sell at 38", explain: "Nothing traded at 38; the stop cannot create that price." },
+        { id: "b", text: "Nothing happens until price comes back to 38, when the stop finally fills", explain: "A stop triggers once price is at or beyond it." },
+        { id: "c", text: "The broker cancels the stop", explain: "The stop triggers." },
+        { id: "d", text: "It becomes a market order and sells near 33", explain: "Right. Gap risk is the stop's failure mode." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q2",
+      prompt: "You send a buy FOK for 500 shares. Only 300 are available at your limit. What happens?",
+      options: [
+        { id: "a", text: "Nothing trades", explain: "Right. Fill-or-kill is all or nothing." },
+        { id: "b", text: "300 fill and 200 rest", explain: "That is a day limit order." },
+        { id: "c", text: "300 fill and 200 are cancelled", explain: "That is IOC." },
+        { id: "d", text: "All 500 fill, some at worse prices beyond your limit", explain: "A limit is never breached." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "Why might a trader prefer a stop-limit over a stop?",
+      options: [
+        { id: "a", text: "It is guaranteed to fill", explain: "It is the one that may not fill." },
+        { id: "b", text: "It caps the worst price, at the risk of not filling", explain: "Right. Price protection traded for fill certainty." },
+        { id: "c", text: "It avoids all gap risk", explain: "It can leave you holding through the gap." },
+        { id: "d", text: "Exchanges always give stop-limit orders priority over other orders at a price", explain: "No such priority exists." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q4",
+      prompt: "What does an iceberg order give up in exchange for hiding its size?",
+      options: [
+        { id: "a", text: "Its limit price", explain: "It keeps its limit." },
+        { id: "b", text: "The right to cancel", explain: "It can still be cancelled." },
+        { id: "c", text: "Queue priority on each refill, on many venues", explain: "Right. Refilled slices usually join the back of the queue." },
+        { id: "d", text: "Nothing at all: hiding size has no downside on any venue", explain: "There is a cost in queue position." },
+      ],
+      correct: "c",
+    },
+  ],
+  practical: {
+    title: "Order types at your broker",
+    instructions: "Research only. Do not place any trades.",
+    steps: [
+      "List the order types your broker offers.",
+      "For stops, note which price triggers them and whether they are held at the exchange or the broker.",
+      "Note whether guaranteed stops exist and their cost.",
+    ],
+    reflectionPrompt: "For your usual exit, would a bad fill or no fill hurt more?",
+  },
+  glossary: ["stop-order", "stop-limit-order", "time-in-force", "immediate-or-cancel", "fill-or-kill", "iceberg-order"],
+  next: "ms-slippage-impact",
+};
+
+export const MS5_SLIPPAGE_IMPACT: Lesson = {
+  id: "ms-slippage-impact",
+  trackId: T,
+  order: 5,
+  format: "full",
+  title: "Slippage and market impact",
+  summary: "Why the price you get differs from the price you saw, how a big order walks the book, and why trading moves prices against you.",
+  minutes: 24,
+  objectives: [
+    "Define slippage and measure it against the touch and the mid.",
+    "Calculate the average price of an order that walks the book.",
+    "Explain market impact and why it grows with order size.",
+    "Explain how thin liquidity makes slippage much worse.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "A plan that ignores slippage overstates profits and understates losses. For larger orders or thin markets, slippage can be bigger than the spread." },
+        { kind: "p", text: "A backtest that fills every order at the last price is assuming slippage away." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Slippage from zero",
+      blocks: [
+        { kind: "p", text: "[[slippage|Slippage]] is the gap between the price you expected and the price you got. It is usually measured per share." },
+        { kind: "interactive", widget: "ms-fig-walk", title: "A big order walks the book", caption: "A drawing. A large buy takes the best ask level, then the next, then part of a third. Its average price is above the best ask." },
+        { kind: "defs", items: [
+          { term: "[[walking-the-book|Walking the book]]", text: "An order bigger than the top level takes the next levels too, each at a worse price." },
+          { term: "[[market-impact|Market impact]]", text: "The price move your own trading causes: the book you use up, and others reacting to your order." },
+          { term: "Against the touch", text: "Average price − best ask (for a buy) when you sent the order." },
+          { term: "Against the mid", text: "Average price − mid: includes the half-spread as well." },
+        ] },
+        { kind: "callout", tone: "warn", title: "Safety-critical", text: "In a thin market a market order can fill far from the last price. Size and order type must allow for it, and so must any backtest." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Feel the slippage",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "The simulator opens on a market buy of 800 shares. Read the preview line: average price and slippage." },
+          { text: "Raise the size to 2,000 and compare. Then switch liquidity to Thin." },
+          { text: "Send the order and see how the spread widens after you take the top levels." },
+          { text: "In the curve below, compare deep, normal and thin books across sizes." },
+        ] },
+        { kind: "interactive", widget: "ms-book-slippage", title: "Slippage in the simulator", caption: "A simulated book opened on a large market order. The preview shows the average price before you send it." },
+        { kind: "interactive", widget: "ms-impact-curve", title: "Slippage against order size", caption: "Cost per share from the mid for market buys of different sizes in three simulated books. A snapshot: no one reacts to your order." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "Walking the book, worked through",
+      blocks: [
+        { kind: "p", text: "The asks are 200 at 20.00, 200 at 20.02 and 300 at 20.05. You buy 500 at market." },
+        { kind: "p", text: "You get 200 at 20.00, 200 at 20.02 and 100 at 20.05: a total of 10,009 dollars, an average of 20.018." },
+        { kind: "callout", tone: "example", title: "Example", text: "Had all 500 filled at 20.00 the cost would be 10,000 dollars. Slippage cost you 9 dollars, about 1.8 cents a share." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: temporary and permanent impact",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Slippage and market impact",
+          what: "The difference between the expected and the actual fill price, caused by spreads, depth, delays and the market's reaction to your trading.",
+          whyItExists: "Visible liquidity at any price is limited, and other traders adjust when they see buying or selling pressure.",
+          problemSolved: "Measuring it turns 'trading costs' from a guess into a number you can plan around.",
+          mechanics: "An order larger than the top level walks the book. After you trade, some of the move reverses (temporary impact) and some stays (permanent impact, as others update their view).",
+          math: "Average price = Σ(price × qty) ÷ Σ qty. Slippage vs touch = average − best ask. Total slippage = Σ(price − best ask) × qty.",
+          howTradersUseIt: "Splitting large orders over time, using limits with a price cap, trading in liquid hours, and adding realistic slippage to backtests.",
+          whenUseful: "Before sending any order large relative to the visible depth.",
+          whenItFails: "Snapshots of depth miss hidden orders and the way the book refills or vanishes when you trade.",
+          limitations: "Impact estimates depend on the market, time of day and who else is trading; they are rough.",
+          misconceptions: "That slippage is the broker cheating. Usually it is the book doing what books do.",
+          realExample: "500 shares through 200 @ 20.00, 200 @ 20.02 and 100 @ 20.05: average 20.018, 9 dollars of slippage.",
+          exercise: "In the curve, find the size at which slippage in the thin book is ten times that in the deep book.",
+          practicalTest: "Explain why splitting an order can reduce impact but adds the risk that price moves while you wait.",
+        } },
+        { kind: "research", research: {
+          title: "Optimal execution of portfolio transactions",
+          authors: "Robert Almgren and Neil Chriss",
+          year: 2001,
+          venue: "Journal of Risk 3(2), 5–39",
+          peerReviewed: true,
+          question: "How should a large order be split over time to balance impact costs against the risk that price moves while you wait?",
+          methodology: "A mathematical model with temporary and permanent impact and price volatility; it finds the trading schedules with the lowest expected cost for each level of risk.",
+          data: "None; it is a model, with an illustrative example.",
+          findings: "There is an efficient frontier of schedules: trading faster costs more impact but carries less price risk; trading slower is cheaper on average but riskier.",
+          limitations: "It assumes simple (for example linear) impact functions and known parameters.",
+          practicalMeaning: "There is no free way to trade size. Speed and impact trade off, and the right balance depends on how much risk you can bear.",
+          status: "replicated",
+          url: "https://ideas.repec.org/a/rsk/journ4/2161150.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "Why the spread widens after a big order", blocks: [
+          { kind: "p", text: "Taking all of the best ask leaves the next ask as the new best. Until someone refills it, the spread is wider." },
+          { kind: "p", text: "Market makers seeing one-sided flow may also widen their quotes, worried about informed trading (lesson 2)." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Execution algorithms", view: "Slice orders through the day, often following volume, to limit impact." },
+          { name: "Transaction cost analysis", view: "Compare each fill with the price when the decision was made, to measure total slippage." },
+          { name: "System testers", view: "Add slippage that grows with size and volatility to every backtest." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Backtesting with fills at the last price.", why: "It ignores spread and depth.", instead: "Assume fills at the bid or ask plus extra slippage for size." },
+          { mistake: "Sending one large market order in a thin share.", why: "It walks deep into the book.", instead: "Use a limit price cap or split the order." },
+          { mistake: "Judging liquidity by the top level alone.", why: "One level says nothing about the next.", instead: "Look at depth for the size you trade." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "Slippage is the gap between expected and actual fill price.",
+            "Large orders walk the book and pay worse prices at each level.",
+            "Market impact includes others reacting to your trading.",
+            "Thin liquidity makes slippage much larger.",
+          ],
+          equations: [
+            { label: "Average price", formula: "Σ(price × qty) ÷ Σ qty" },
+            { label: "Total slippage (buy)", formula: "Σ(price − best ask) × qty" },
+          ],
+          implications: ["Include slippage in every plan and backtest.", "Match order size to available depth."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "From a depth view, work out the average price for buying ten times the size at the best ask.",
+          "Look back at a past fill of yours and compare it with the quote at the moment you sent it.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-slippage-impact-ex",
+    title: "Slippage when walking the book",
+    prompt: "The asks are 200 at 20.00, 200 at 20.02 and 300 at 20.05. You buy 500 shares at market. How many dollars more do you pay than if all 500 had filled at 20.00?",
+    unit: "dollars",
+    answer: 9,
+    tolerance: 0,
+    hint: "Fill 200 at 20.00, 200 at 20.02 and the last 100 at 20.05. Add up the cost and compare with 500 × 20.00.",
+    solution: "200 × 20.00 + 200 × 20.02 + 100 × 20.05 = 4,000 + 4,004 + 2,005 = 10,009. 500 × 20.00 = 10,000. The difference is 9 dollars.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "Which order is likely to suffer the most slippage?",
+      options: [
+        { id: "a", text: "A small limit order in a liquid share", explain: "Limits do not slip past their price." },
+        { id: "b", text: "A large market order in a thin share", explain: "Right. It walks a shallow book." },
+        { id: "c", text: "A small market order in a liquid share during normal, calm trading hours", explain: "Usually fills at the touch." },
+        { id: "d", text: "Any order sent at the close", explain: "Time of day matters, but size and depth matter more." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q2",
+      prompt: "A backtest fills every trade at the last traded price. What does that ignore?",
+      options: [
+        { id: "a", text: "Spread and slippage", explain: "Right. Real fills are at the bid or ask, and worse for size." },
+        { id: "b", text: "Nothing, because the last price is the real price", explain: "You trade at the quote, not the last print." },
+        { id: "c", text: "Only commissions", explain: "Spread and slippage are separate costs." },
+        { id: "d", text: "Dividends paid on the shares while they are held in the account", explain: "That is a different issue." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "What is market impact?",
+      options: [
+        { id: "a", text: "The news that moves a market", explain: "That is news, not your impact." },
+        { id: "b", text: "The broker's fee for executing a large order on your behalf", explain: "Fees are separate." },
+        { id: "c", text: "The price move caused by your own trading", explain: "Right. Your order uses up liquidity and others react." },
+        { id: "d", text: "The difference between bid and ask", explain: "That is the spread." },
+      ],
+      correct: "c",
+    },
+    {
+      id: "q4",
+      prompt: "Why does splitting a large order over time not remove the cost?",
+      options: [
+        { id: "a", text: "Brokers charge for every split", explain: "Fees are not the main reason." },
+        { id: "b", text: "Splitting is not allowed by exchanges", explain: "It is common practice." },
+        { id: "c", text: "Each piece always gets a worse price than the last piece did", explain: "Not necessarily." },
+        { id: "d", text: "Price can move against you while you wait", explain: "Right. Less impact, more timing risk." },
+      ],
+      correct: "d",
+    },
+  ],
+  practical: {
+    title: "Measure your slippage",
+    instructions: "Use the simulator, or past fills. Do not place new trades for this.",
+    steps: [
+      "In the simulator, send market buys of 200, 800 and 2,000 shares on a fresh normal book.",
+      "Record the slippage against the touch for each.",
+      "Repeat on the thin book.",
+    ],
+    reflectionPrompt: "How should slippage change the size you trade in a thin market?",
+  },
+  glossary: ["walking-the-book", "market-impact"],
+  next: "ms-auctions",
+};
+
+export const MS6_AUCTIONS: Lesson = {
+  id: "ms-auctions",
+  trackId: T,
+  order: 6,
+  format: "full",
+  title: "Opening and closing auctions",
+  summary: "How call auctions gather orders and set one price, why the open and close are run this way, and what an imbalance means.",
+  minutes: 20,
+  objectives: [
+    "Explain how a call auction sets a single price.",
+    "Find the auction price that matches the most shares.",
+    "Explain why many exchanges open and close with an auction.",
+    "Explain auction imbalances and the risk of market orders in auctions.",
+  ],
+  sections: [
+    {
+      id: "why",
+      part: "why",
+      heading: "Why this matters",
+      blocks: [
+        { kind: "p", text: "On many exchanges the official closing price comes from a closing auction. Index funds often trade there, so a large share of the day's volume can happen at that one moment." },
+        { kind: "p", text: "Orders you send before the open may trade in the opening auction, at a price you did not see when you sent them." },
+      ],
+    },
+    {
+      id: "beginner",
+      part: "beginner",
+      heading: "Auctions from zero",
+      blocks: [
+        { kind: "p", text: "In a [[call-auction|call auction]] orders are collected for a while without trading. Then one price is chosen and everyone who trades gets it." },
+        { kind: "interactive", widget: "ms-fig-auction", title: "Where buying and selling meet", caption: "A drawing. Shares people would buy fall as price rises; shares people would sell rise. The auction price is where the most shares match." },
+        { kind: "defs", items: [
+          { term: "[[opening-auction|Opening auction]]", text: "Gathers orders before the open and sets the first price of the day." },
+          { term: "[[closing-auction|Closing auction]]", text: "Gathers orders near the end and sets the closing price on many exchanges." },
+          { term: "[[auction-imbalance|Imbalance]]", text: "Shares left on one side at the auction price. Many exchanges publish it before the auction." },
+        ] },
+        { kind: "callout", tone: "warn", title: "Watch out", text: "A market order in an auction accepts any auction price. With a large imbalance, that price can be far from the last trade." },
+      ],
+    },
+    {
+      id: "visual",
+      part: "visual",
+      heading: "Run an auction",
+      blocks: [
+        { kind: "step-list", items: [
+          { text: "Look at the table: for each price, how many shares would buy, sell and match." },
+          { text: "Add a market buy for 1,000 shares and watch the auction price rise." },
+          { text: "Change it to a limit buy at 49.98. It does not move the price, and may not trade." },
+        ] },
+        { kind: "interactive", widget: "ms-auction", title: "Call auction", caption: "Made-up orders for an opening auction. The tool picks the price that matches the most shares, then the smallest imbalance, then the price nearest 50.00." },
+      ],
+    },
+    {
+      id: "example",
+      part: "example",
+      heading: "An auction worked through",
+      blocks: [
+        { kind: "p", text: "Buy orders: 300 at market, 400 at 10.02, 300 at 10.01, 200 at 10.00. Sell orders: 200 at market, 300 at 9.99, 300 at 10.00, 400 at 10.02." },
+        { kind: "p", text: "At 10.00, 1,200 would buy and 800 would sell: 800 match. At 10.01, 1,000 buy and 800 sell: 800 match. At 10.02, 700 buy and 1,200 sell: 700." },
+        { kind: "callout", tone: "example", title: "Example", text: "800 shares trade. Both 10.00 and 10.01 match 800; 10.01 leaves the smaller imbalance (200 against 400), so it would usually be chosen." },
+      ],
+    },
+    {
+      id: "deep-dive",
+      part: "deep-dive",
+      heading: "Technical deep dive: why markets use auctions",
+      blocks: [
+        { kind: "concept-card", card: {
+          name: "Call auction (uncrossing)",
+          what: "A trading mechanism that collects orders, then executes all matchable ones at a single price that maximises the volume traded.",
+          whyItExists: "At the open, overnight news has piled up; at the close, many funds need one reference price. A single auction pools that liquidity.",
+          problemSolved: "It avoids wild first trades and gives a robust official price from many orders at once.",
+          mechanics: "For each possible price, add up buys at or above it and sells at or below it. Choose the price with the most matched volume; ties go to the smallest imbalance, then other venue rules.",
+          math: "Matched(p) = min(Σ buys with limit ≥ p or market, Σ sells with limit ≤ p or market). Auction price = argmax Matched(p).",
+          howTradersUseIt: "Index funds trade at the close to match the index; traders read published imbalances for information.",
+          whenUseful: "When you need the official close, or want to trade with the large pool of liquidity at the open or close.",
+          whenItFails: "Large imbalances can move the auction price far; market orders accept whatever price results.",
+          limitations: "Tie-break rules, timings and imbalance publication differ by exchange.",
+          misconceptions: "That auction orders trade in arrival order. Price is set once, then allocation follows the venue's rules.",
+          realExample: "The worked example: 800 shares match at 10.00 and 10.01; the smaller imbalance picks 10.01.",
+          exercise: "In the tool, find the size of a market sell that pushes the auction price below 50.00.",
+          practicalTest: "Explain why the closing price can differ from the last continuous trade.",
+        } },
+        { kind: "research", research: {
+          title: "A closing call's impact on market quality at Euronext Paris",
+          authors: "Michael S. Pagano and Robert A. Schwartz",
+          year: 2003,
+          venue: "Journal of Financial Economics 68(3), 439–484",
+          peerReviewed: true,
+          question: "Did adding an electronic closing call auction improve market quality on the Paris Bourse?",
+          methodology: "Compared market quality before and after closing calls were introduced, in 1996 for less liquid shares and in 1998 for more liquid ones.",
+          data: "Prices for 50 stocks in each group around the two introductions.",
+          findings: "The closing calls lowered execution costs for traders and improved price discovery. Market quality at the open improved too, by less.",
+          limitations: "One exchange in the 1990s; later market structure is different.",
+          practicalMeaning: "Pooling orders at the close can make the closing price more reliable, which is one reason exchanges use closing auctions.",
+          status: "regime-sensitive",
+          url: "https://ideas.repec.org/a/eee/jfinec/v68y2003i3p439-484.html",
+          verified: true,
+        } },
+        { kind: "deeper", title: "Imbalance messages", blocks: [
+          { kind: "p", text: "Many exchanges publish the indicative auction price and the imbalance before the auction. Other traders may then send orders to offset it." },
+          { kind: "p", text: "A large imbalance is information, not a promise: it can shrink or flip before the auction runs." },
+        ] },
+      ],
+    },
+    {
+      id: "professionals",
+      part: "professionals",
+      heading: "What professionals look for",
+      blocks: [
+        { kind: "methodologies", items: [
+          { name: "Index funds", view: "Trade at the closing auction to match the index's closing prices." },
+          { name: "Liquidity providers", view: "Offset published imbalances in return for a better price." },
+          { name: "Cautious retail traders", view: "Use limit orders, not market orders, before the open." },
+        ] },
+      ],
+    },
+    {
+      id: "mistakes",
+      part: "mistakes",
+      heading: "Common mistakes",
+      blocks: [
+        { kind: "mistakes", items: [
+          { mistake: "Sending a market order before the open.", why: "It joins the opening auction at whatever price it sets.", instead: "Use a limit order, or wait for continuous trading." },
+          { mistake: "Assuming the close equals the last trade before the auction.", why: "The auction sets its own price.", instead: "Check how your exchange sets the official close." },
+          { mistake: "Treating an imbalance as a sure signal.", why: "Others can offset it before the auction.", instead: "Treat it as one piece of information." },
+        ] },
+      ],
+    },
+    {
+      id: "summary",
+      part: "summary",
+      heading: "Summary",
+      blocks: [
+        { kind: "summary",
+          keyConcepts: [
+            "A call auction collects orders and sets one price for everyone.",
+            "The price maximises matched volume; ties use the imbalance and venue rules.",
+            "Many exchanges open and close with auctions.",
+            "Market orders in auctions accept any price.",
+          ],
+          equations: [{ label: "Matched volume", formula: "min(buys at ≥ p, sells at ≤ p)" }],
+          implications: ["Use limits in auctions.", "Know how your exchange sets the official close."],
+        },
+      ],
+    },
+    {
+      id: "homework",
+      part: "homework",
+      heading: "Practical homework",
+      blocks: [
+        { kind: "homework", tasks: [
+          "Find out when your main exchange runs its opening and closing auctions.",
+          "Compare a share's closing price with its last trade before the closing auction on three days.",
+        ] },
+      ],
+    },
+  ],
+  exercise: {
+    kind: "calculate",
+    id: "ms-auctions-ex",
+    title: "How many shares trade?",
+    prompt: "Buys: 300 at market, 400 at 10.02, 300 at 10.01, 200 at 10.00. Sells: 200 at market, 300 at 9.99, 300 at 10.00, 400 at 10.02. How many shares trade in the auction?",
+    unit: "shares",
+    answer: 800,
+    tolerance: 0,
+    hint: "For each price, add up the buys at or above it and the sells at or below it. Matched volume is the smaller of the two.",
+    solution: "At 9.99: 1,200 buy, 500 sell → 500. At 10.00: 1,200 and 800 → 800. At 10.01: 1,000 and 800 → 800. At 10.02: 700 and 1,200 → 700. The most is 800.",
+  },
+  quiz: [
+    {
+      id: "q1",
+      prompt: "In a call auction, what price do the buyers get?",
+      options: [
+        { id: "a", text: "Each gets their own limit price", explain: "Everyone gets the same auction price." },
+        { id: "b", text: "The single auction price", explain: "Right. One price for all matched orders." },
+        { id: "c", text: "The previous day's closing price, adjusted for overnight news", explain: "The auction sets a new price." },
+        { id: "d", text: "The mid of the first continuous quote", explain: "The auction comes before continuous trading." },
+      ],
+      correct: "b",
+    },
+    {
+      id: "q2",
+      prompt: "How is the auction price chosen?",
+      options: [
+        { id: "a", text: "The price that matches the most shares", explain: "Right. Ties are then broken by imbalance and venue rules." },
+        { id: "b", text: "The average of all limit prices", explain: "Averages ignore size." },
+        { id: "c", text: "The highest buy limit", explain: "Few sellers might trade there." },
+        { id: "d", text: "The price chosen by the largest single trader taking part in the auction", explain: "No single trader chooses it." },
+      ],
+      correct: "a",
+    },
+    {
+      id: "q3",
+      prompt: "Why is a market order risky in an opening auction?",
+      options: [
+        { id: "a", text: "It is always rejected", explain: "It is accepted." },
+        { id: "b", text: "It trades after the auction", explain: "It joins the auction." },
+        { id: "c", text: "It always gets the worst possible price in the whole auction", explain: "It gets the auction price, which may be bad but is the same for all." },
+        { id: "d", text: "It accepts any auction price", explain: "Right. A big imbalance can set a price far from yesterday's close." },
+      ],
+      correct: "d",
+    },
+    {
+      id: "q4",
+      prompt: "Why do many index funds trade in the closing auction?",
+      options: [
+        { id: "a", text: "Prices are always lower there", explain: "No such pattern is guaranteed." },
+        { id: "b", text: "Auctions have no fees", explain: "Fees vary; that is not the reason." },
+        { id: "c", text: "The closing price is what their index uses", explain: "Right. Trading at that price reduces tracking error." },
+        { id: "d", text: "They are required to by law in every country where they are sold", explain: "There is no such general law." },
+      ],
+      correct: "c",
+    },
+  ],
+  practical: {
+    title: "Watch a closing auction",
+    instructions: "Observation only. Do not place any trades.",
+    steps: [
+      "Pick a large share on your main exchange.",
+      "Note the last trade before the closing auction and the official close.",
+      "Repeat for three days and note the differences.",
+    ],
+    reflectionPrompt: "Would a market-on-close order have surprised you on any of those days?",
+  },
+  glossary: ["call-auction", "opening-auction", "closing-auction", "auction-imbalance"],
+  next: "ms-fragmentation",
+};
