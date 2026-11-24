@@ -44,8 +44,10 @@ export async function cached<T>(key: string, ttlMs: number, load: () => Promise<
       })
       .catch((err: unknown) => {
         entry.error = err instanceof Error ? err.message : String(err);
-        // Back off for the TTL (at least 30 s) after a failure.
-        entry.expiresAt = Date.now() + Math.max(ttlMs, 30_000);
+        // Back off for the TTL (at least 30 s) after a failure, unless the
+        // provider said exactly when to try again.
+        const retry = (err as { retryAfterMs?: unknown })?.retryAfterMs;
+        entry.expiresAt = Date.now() + (typeof retry === "number" && retry > 0 ? retry : Math.max(ttlMs, 30_000));
         throw err;
       })
       .finally(() => {

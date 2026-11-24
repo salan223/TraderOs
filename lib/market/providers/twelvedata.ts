@@ -14,38 +14,67 @@ import type { Quote } from "../types";
  * key never runs out however long the app stays open. Early in a fresh day
  * that is about every 12 minutes; with plenty of credits and little time
  * left it speeds up, but never below the per-minute floor.
- * TWELVE_DATA_REFRESH_SECONDS, if set, raises that floor.
+ *
+ * Several copies of the app can share one key (your computer and the hosted
+ * site, say). So every few refreshes each copy asks Twelve Data for the real
+ * number of credits used today, and paces against that. When another copy is
+ * spending credits too, the remaining budget shrinks faster and every copy
+ * slows down on its own, so together they still never run out before the reset.
+ *
+ * TWELVE_DATA_REFRESH_SECONDS, if set, raises the floor. Set it high on a
+ * copy you want to use few credits (for example 1800 on your computer, so the
+ * public site gets most of them).
  */
 export const twelveDataKey = () => process.env.TWELVE_DATA_API_KEY?.trim() || "";
 
 /** 7 credits per refresh must fit in the 8-a-minute limit, with headroom. */
 const MIN_SECONDS = 75;
-/** Credits held back for the once-a-day usage check and any stray request. */
-const RESERVE = 10;
+/** Credits held back for usage checks and requests from other copies of the app. */
+const RESERVE = 20;
+/** Re-check the real daily usage after this many refreshes (1 credit per check). */
+const SYNC_EVERY = 4;
 
-type Budget = { day: string; used: number; limit: number; seeded: boolean };
+type Budget = { day: string; used: number; limit: number; seeded: boolean; sinceSync: number };
 const g = globalThis as Record<string, unknown>;
-const budget: Budget = (g.__traderosTdBudget as Budget) ?? (g.__traderosTdBudget = { day: "", used: 0, limit: 800, seeded: false });
+const budget: Budget = (g.__traderosTdBudget as Budget) ?? (g.__traderosTdBudget = { day: "", used: 0, limit: 800, seeded: false, sinceSync: 0 });
+budget.sinceSync ??= 0;
+
+/** An error the cache should retry sooner (or later) than the usual refresh interval. */
+export class RetryAfterError extends Error {
+  constructor(message: string, readonly retryAfterMs: number) {
+    super(message);
+  }
+}
+
+function msUntilReset(now = Date.now()) {
+  return Date.parse(`${utcDay(now)}T00:00:00Z`) + 86_400_000 - now;
+}
 
 const utcDay = (t = Date.now()) => new Date(t).toISOString().slice(0, 10);
 
 function rollDay() {
   const d = utcDay();
-  if (budget.day !== d) Object.assign(budget, { day: d, used: 0, seeded: false });
+  if (budget.day !== d) Object.assign(budget, { day: d, used: 0, seeded: false, sinceSync: 0 });
 }
 
-/** Ask Twelve Data how many credits today already used (costs 1 credit, once a day per server). */
-async function seedBudget(key: string) {
+/**
+ * Ask Twelve Data how many credits today already used, by every copy of the
+ * app sharing this key. Costs 1 credit; done on the first refresh of the day
+ * and then every SYNC_EVERY refreshes.
+ */
+async function syncBudget(key: string) {
   rollDay();
-  if (budget.seeded) return;
+  if (budget.seeded && budget.sinceSync < SYNC_EVERY) return;
   budget.seeded = true;
+  budget.sinceSync = 0;
+  budget.used += 1; // the check itself
   try {
     const res = await fetchWithTimeout("https://api.twelvedata.com/api_usage", {
       headers: { Authorization: `apikey ${key}`, Accept: "application/json" },
     });
     if (!res.ok) return;
     const u = (await res.json()) as { daily_usage?: number; plan_daily_limit?: number };
-    if (typeof u.daily_usage === "number") budget.used = Math.max(budget.used, u.daily_usage);
+    if (typeof u.daily_usage === "number") budget.used = u.daily_usage;
     if (typeof u.plan_daily_limit === "number" && u.plan_daily_limit > 0) budget.limit = u.plan_daily_limit;
   } catch {
     // Keep counting locally; the reserve covers the uncertainty.
@@ -57,8 +86,7 @@ export function twelveDataRefreshSeconds(now = Date.now()) {
   const n = Number(process.env.TWELVE_DATA_REFRESH_SECONDS);
   const floor = Number.isFinite(n) && n >= MIN_SECONDS ? Math.round(n) : MIN_SECONDS;
   const perRefresh = Math.max(1, instrumentsIn("fx").length);
-  const nextReset = Date.parse(`${utcDay(now)}T00:00:00Z`) + 86_400_000;
-  const secondsLeft = Math.max(60, Math.ceil((nextReset - now) / 1000));
+  const secondsLeft = Math.max(60, Math.ceil(msUntilReset(now) / 1000));
   const refreshesLeft = Math.floor((budget.limit - budget.used - RESERVE) / perRefresh);
   if (refreshesLeft < 1) return secondsLeft; // wait for the reset
   return Math.max(floor, Math.ceil(secondsLeft / refreshesLeft));
@@ -80,6 +108,20 @@ type TdQuote = {
   status?: string;
 };
 
+/**
+ * A 429 is either the 8-a-minute limit (another copy of the app refreshed in
+ * the same minute: try again in a minute) or the daily limit (wait for the
+ * reset at 00:00 UTC). The last good prices stay on screen meanwhile.
+ */
+function limitError(message?: string) {
+  const daily = /day|daily/i.test(message ?? "");
+  if (daily) {
+    budget.used = budget.limit; // pace as empty until the reset
+    return new RetryAfterError("Twelve Data's free daily credits are used up. Forex prices resume after 00:00 UTC.", msUntilReset() + 30_000);
+  }
+  return new RetryAfterError("Twelve Data's per-minute limit was hit. Retrying in about a minute.", 65_000);
+}
+
 const num = (s: string | undefined) => {
   const n = s === undefined ? NaN : Number(s);
   return Number.isFinite(n) ? n : null;
@@ -90,21 +132,25 @@ export async function fetchFxQuotes(): Promise<Quote[]> {
   if (!key) throw new Error("TWELVE_DATA_API_KEY is not set.");
   const list = instrumentsIn("fx");
   const symbols = list.map((i) => i.providerSymbol).join(",");
-  await seedBudget(key);
+  await syncBudget(key);
   const res = await fetchWithTimeout(
     `https://api.twelvedata.com/quote?symbol=${encodeURIComponent(symbols)}`,
     { headers: { Authorization: `apikey ${key}`, Accept: "application/json" } },
   );
   rollDay();
   budget.used += Number(res.headers.get("api-credits-request")) || list.length;
-  if (res.status === 429) throw new Error("Twelve Data's free-plan limit was reached (8 requests a minute, 800 a day). Forex prices resume at the next refresh.");
+  budget.sinceSync += 1;
+  if (res.status === 429) {
+    const body = (await res.json().catch(() => null)) as TdQuote | null;
+    throw limitError(body?.message);
+  }
   if (!res.ok) throw new Error(`Twelve Data answered ${res.status}.`);
   const body = (await res.json()) as TdQuote | Record<string, TdQuote>;
 
   // A whole-request error (bad key, out of credits) comes back as one object.
   const top = body as TdQuote;
   if (top.status === "error" || typeof top.code === "number") {
-    if (top.code === 429) throw new Error("Twelve Data's free-plan credit limit was reached. Forex prices resume when it resets.");
+    if (top.code === 429) throw limitError(top.message);
     if (top.code === 401) throw new Error("Twelve Data rejected the API key. Check TWELVE_DATA_API_KEY.");
     throw new Error(top.message || "Twelve Data returned an error.");
   }
