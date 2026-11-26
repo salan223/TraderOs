@@ -908,5 +908,5 @@ export const SI6_DIVIDENDS_ACTIONS: Lesson = {
     reflectionPrompt: "Did the price drop by about the dividend on the ex-date? If not, what else might have been going on that day?",
   },
   glossary: ["corporate-action", "ex-dividend-date", "dividend-yield", "stock-split", "reverse-split", "share-buyback"],
-  next: "cr-what-is-a-chart",
+  next: "cy-blockchains",
 };

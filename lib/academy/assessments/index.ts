@@ -10,6 +10,9 @@ import { PSYCHOLOGY_ASSESSMENT } from "./psychology";
 import { STRATEGY_ASSESSMENT } from "./strategy";
 import { BACKTESTING_ASSESSMENT } from "./backtesting";
 import { MACRO_NEWS_ASSESSMENT } from "./macro-news";
+import { CRYPTO_ASSESSMENT } from "./crypto";
+import { COMMODITIES_ASSESSMENT } from "./commodities";
+import { ADVANCED_ASSESSMENT } from "./advanced";
 
 /** Track assessments by track id. Every written track has one. */
 export const ASSESSMENTS: Readonly<Record<string, TrackAssessment>> = {
@@ -24,6 +27,9 @@ export const ASSESSMENTS: Readonly<Record<string, TrackAssessment>> = {
   [STRATEGY_ASSESSMENT.trackId]: STRATEGY_ASSESSMENT,
   [BACKTESTING_ASSESSMENT.trackId]: BACKTESTING_ASSESSMENT,
   [MACRO_NEWS_ASSESSMENT.trackId]: MACRO_NEWS_ASSESSMENT,
+  [CRYPTO_ASSESSMENT.trackId]: CRYPTO_ASSESSMENT,
+  [COMMODITIES_ASSESSMENT.trackId]: COMMODITIES_ASSESSMENT,
+  [ADVANCED_ASSESSMENT.trackId]: ADVANCED_ASSESSMENT,
 };
 
 export function getAssessment(trackId: string): TrackAssessment | undefined {

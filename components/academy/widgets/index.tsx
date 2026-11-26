@@ -24,6 +24,10 @@ import { FigMacroCalendar, FigMacroCentralBank, FigMacroDifferential, FigMacroEa
 import { FigAuction, FigDark, FigLadder, FigLatency, FigLuld, FigNbbo, FigQueue, FigRetailRoute, FigSpread, FigStopGap, FigVenues, FigWalk } from "./ms-illustrations";
 import { FigBands, FigDivergence, FigFibonacci, FigHeadShoulders, FigMaLag, FigMacd, FigOverfit, FigRedundancy, FigRsi, FigRule, FigStoch, FigTimeframes, FigTrendline, FigTriangles, FigTrueRange, FigVwapObv } from "./ta-illustrations";
 
+import { CryptoVolatility, CustodyTool, HashChain, ScamCheck, StablecoinRun } from "./crypto-tools";
+import { CrackSpread, DollarTool, MetalsTool, RollYield, StocksToUseTool } from "./commodity-tools";
+import { CorrelationLab, FuturesMargin, OptionPayoff, PerformanceLab, PortfolioRisk } from "./advanced-tools";
+
 type WidgetProps = { title: string; caption: string };
 
 /** Every interactive illustration, by the id used in lesson content. */
@@ -225,6 +229,21 @@ export const WIDGETS: Record<WidgetId, ComponentType<WidgetProps>> = {
   "macro-fig-shocks": FigMacroShocks,
   "macro-fig-statement": FigMacroStatement,
   "macro-fig-sources": FigMacroSources,
+  "cy-hash-chain": HashChain,
+  "cy-custody": CustodyTool,
+  "cy-stablecoin-run": StablecoinRun,
+  "cy-volatility": CryptoVolatility,
+  "cy-scam-check": ScamCheck,
+  "co-crack-spread": CrackSpread,
+  "co-metals": MetalsTool,
+  "co-stocks-to-use": StocksToUseTool,
+  "co-roll-yield": RollYield,
+  "co-dollar": DollarTool,
+  "adv-correlation": CorrelationLab,
+  "adv-portfolio-risk": PortfolioRisk,
+  "adv-option-payoff": OptionPayoff,
+  "adv-futures-margin": FuturesMargin,
+  "adv-performance": PerformanceLab,
 };
 
 export function Widget({ id, title, caption }: { id: WidgetId } & WidgetProps) {

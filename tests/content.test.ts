@@ -55,8 +55,12 @@ const ALL_WIDGETS = [
   "macro-fig-central-bank", "macro-fig-inflation", "macro-fig-labour", "macro-fig-growth", "macro-fig-yield-curve",
   "macro-fig-differential", "macro-fig-risk-on-off", "macro-fig-calendar", "macro-fig-news-spike", "macro-fig-earnings",
   "macro-fig-shocks", "macro-fig-statement", "macro-fig-sources",
+  // Tracks 4, 5 and 14
+  "cy-hash-chain", "cy-custody", "cy-stablecoin-run", "cy-volatility", "cy-scam-check",
+  "co-crack-spread", "co-metals", "co-stocks-to-use", "co-roll-yield", "co-dollar",
+  "adv-correlation", "adv-portfolio-risk", "adv-option-payoff", "adv-futures-margin", "adv-performance",
 ];
-const WRITTEN = ["market-foundations", "forex-foundations", "stocks-indices", "chart-reading", "technical-analysis", "risk-management", "trading-psychology", "strategy-development", "backtesting", "macro-news", "market-structure"];
+const WRITTEN = ["market-foundations", "forex-foundations", "stocks-indices", "chart-reading", "technical-analysis", "risk-management", "trading-psychology", "strategy-development", "backtesting", "macro-news", "market-structure", "crypto", "commodities", "advanced"];
 
 const ALL_VISUALS = [
   "market-meeting", "supply-demand", "participants-map", "share-ownership", "currency-pair",
@@ -93,8 +97,8 @@ describe("curriculum structure", () => {
     expect(TRACKS.find((t) => t.id === "glossary")).toBeUndefined(); // would clash with /academy/glossary
   });
 
-  it("tracks 1–3, 6–12 and 13 are written; planned tracks have outlines and no lessons", () => {
-    const sizes: Record<string, number> = { "market-foundations": 10, "forex-foundations": 7, "stocks-indices": 6, "chart-reading": 12, "technical-analysis": 12, "risk-management": 10, "trading-psychology": 12, "strategy-development": 12, "backtesting": 13, "macro-news": 13, "market-structure": 11 };
+  it("all 14 tracks are written with the expected lesson counts (any planned track would need an outline and no lessons)", () => {
+    const sizes: Record<string, number> = { "market-foundations": 10, "forex-foundations": 7, "stocks-indices": 6, "chart-reading": 12, "technical-analysis": 12, "risk-management": 10, "trading-psychology": 12, "strategy-development": 12, "backtesting": 13, "macro-news": 13, "market-structure": 11, "crypto": 5, "commodities": 5, "advanced": 5 };
     for (const t of TRACKS) {
       if (WRITTEN.includes(t.id)) {
         expect(t.status).toBe("written");
@@ -173,7 +177,10 @@ describe("curriculum structure", () => {
     expect([...trackOrder].sort((a, b) => a - b)).toEqual(trackOrder);
     expect(getLesson("terminology")!.next).toBe("fx-quotes");
     expect(getLesson("fx-costs")!.next).toBe("si-exchanges");
-    expect(getLesson("si-dividends-actions")!.next).toBe("cr-what-is-a-chart");
+    // Tracks 4 (Cryptocurrency) and 5 (Commodities) sit between Stocks and Indices (3) and Chart Reading (6).
+    expect(getLesson("si-dividends-actions")!.next).toBe("cy-blockchains");
+    expect(getLesson("cy-scams")!.next).toBe("co-energy");
+    expect(getLesson("co-dollar")!.next).toBe("cr-what-is-a-chart");
     // Track 7 (Technical Analysis, order 7) sits between Chart Reading (6) and Risk Management (8).
     expect(getLesson("cr-practical-exam")!.next).toBe("ta-moving-averages");
     expect(getLesson("ta-testable-rules")!.next).toBe("rm-risk-per-trade");
@@ -183,6 +190,8 @@ describe("curriculum structure", () => {
     expect(getLesson("strat-lifecycle")!.next).toBe("bt-what-it-tells");
     expect(getLesson("bt-checklist")!.next).toBe("mn-central-banks");
     expect(getLesson("mn-sources")!.next).toBe("ms-venues");
+    // Track 14 (Advanced Trading Concepts) closes the curriculum.
+    expect(getLesson("ms-halts")!.next).toBe("adv-correlation");
     expect(LESSONS[LESSONS.length - 1].next).toBeNull();
   });
 

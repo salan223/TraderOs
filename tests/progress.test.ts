@@ -641,7 +641,8 @@ describe("merge tombstones (round 3: resets and cleared reflections)", () => {
 
 describe("cross-track progress", () => {
   const written = TRACKS.filter((t) => t.status === "written").map((t) => lessonsOfTrack(t.id));
-  const mf = written[0], fx = written[1], si = written[2], cr = written[3], ta = written[4], rm = written[5], psy = written[6], strat = written[7], bt = written[8], mn = written[9], ms = written[10];
+  const byId = (id: string) => lessonsOfTrack(id);
+  const mf = byId("market-foundations"), fx = byId("forex-foundations"), si = byId("stocks-indices"), cy = byId("crypto"), co = byId("commodities"), cr = byId("chart-reading"), ta = byId("technical-analysis"), rm = byId("risk-management"), psy = byId("trading-psychology"), strat = byId("strategy-development"), bt = byId("backtesting"), mn = byId("macro-news"), ms = byId("market-structure"), adv = byId("advanced");
   const clock: Clock = { now: at("2026-03-10T12:00:00Z"), timeZone: "UTC" };
 
   it("current track is the first one not complete, then the last when all are complete", () => {
@@ -652,32 +653,14 @@ describe("cross-track progress", () => {
     for (const l of fx) s = complete(s, l, "2026-03-10T09:00:00Z");
     expect(currentTrackIndex(written, s, clock)).toBe(2);
     for (const l of si) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // Track 6 (Chart Reading) is written now, so it is current after Stocks and Indices…
-    expect(currentTrackIndex(written, s, clock)).toBe(3);
-    for (const l of cr) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // Track 7 (Technical Analysis) is written too, so it is current after Chart Reading…
-    expect(currentTrackIndex(written, s, clock)).toBe(4);
-    for (const l of ta) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 8 (Risk Management)…
-    expect(currentTrackIndex(written, s, clock)).toBe(5);
-    for (const l of rm) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 9 (Trading Psychology)…
-    expect(currentTrackIndex(written, s, clock)).toBe(6);
-    for (const l of psy) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 10 (Strategy Development)…
-    expect(currentTrackIndex(written, s, clock)).toBe(7);
-    for (const l of strat) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 11 (Backtesting)…
-    expect(currentTrackIndex(written, s, clock)).toBe(8);
-    for (const l of bt) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 12 (Macro and News)…
-    expect(currentTrackIndex(written, s, clock)).toBe(9);
-    for (const l of mn) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …then Track 13 (Market Structure)…
-    expect(currentTrackIndex(written, s, clock)).toBe(10);
-    for (const l of ms) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // …which, as the last written track, stays current once everything is complete.
-    expect(currentTrackIndex(written, s, clock)).toBe(10);
+    // Tracks follow curriculum order: Cryptocurrency (4) and Commodities (5) come next, then Chart Reading (6) onward to Advanced (14).
+    const rest = [cy, co, cr, ta, rm, psy, strat, bt, mn, ms, adv];
+    rest.forEach((track, k) => {
+      expect(currentTrackIndex(written, s, clock)).toBe(3 + k);
+      for (const l of track) s = complete(s, l, "2026-03-10T09:00:00Z");
+    });
+    // …and the last written track stays current once everything is complete.
+    expect(currentTrackIndex(written, s, clock)).toBe(written.length - 1);
     expect(currentTrackIndex([], s, clock)).toBe(-1);
     expect(currentTrackIndex([[], fx], emptyProgress(), clock)).toBe(1); // skips empty tracks
   });
@@ -699,7 +682,12 @@ describe("cross-track progress", () => {
     for (const l of fx) s = complete(s, l, "2026-03-10T09:00:00Z");
     expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "si-exchanges", reason: "start" });
     for (const l of si) s = complete(s, l, "2026-03-10T09:00:00Z");
-    // Track 6 (Chart Reading) follows Stocks and Indices in curriculum order.
+    // Track 4 (Cryptocurrency) and Track 5 (Commodities) follow Stocks and Indices…
+    expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "cy-blockchains", reason: "start" });
+    for (const l of cy) s = complete(s, l, "2026-03-10T09:00:00Z");
+    expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "co-energy", reason: "start" });
+    for (const l of co) s = complete(s, l, "2026-03-10T09:00:00Z");
+    // …then Track 6 (Chart Reading).
     expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "cr-what-is-a-chart", reason: "start" });
     for (const l of cr) s = complete(s, l, "2026-03-10T09:00:00Z");
     // Track 7 (Technical Analysis) follows Chart Reading in curriculum order…
@@ -723,6 +711,9 @@ describe("cross-track progress", () => {
     for (const l of mn) s = complete(s, l, "2026-03-10T09:00:00Z");
     expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "ms-venues", reason: "start" });
     for (const l of ms) s = complete(s, l, "2026-03-10T09:00:00Z");
+    // …then Track 14 (Advanced Trading Concepts).
+    expect(recommendNext(LESSONS, s, clock)).toEqual({ lessonId: "adv-correlation", reason: "start" });
+    for (const l of adv) s = complete(s, l, "2026-03-10T09:00:00Z");
     // all complete but practised on one day only → consolidate (later: same day)
     expect(recommendNext(LESSONS, s, clock)?.reason).toBe("consolidate-later");
   });

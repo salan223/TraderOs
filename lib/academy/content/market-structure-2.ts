@@ -1204,5 +1204,5 @@ export const MS11_HALTS: Lesson = {
     reflectionPrompt: "How would a halt change the size of position you are willing to hold?",
   },
   glossary: ["trading-halt", "circuit-breaker", "limit-up-limit-down"],
-  next: null,
+  next: "adv-correlation",
 };

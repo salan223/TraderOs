@@ -21,6 +21,9 @@ import { STRAT7_OVERFIT, STRAT8_SPEC, STRAT9_FORWARD, STRAT10_KILL, STRAT11_DIVE
 import { BT1_WHAT, BT2_DATA, BT3_BIASES, BT4_COSTS, BT5_METRICS, BT6_ISOOS, BT7_WALKFORWARD } from "./content/backtesting-1";
 import { BT8_ROBUST, BT9_MC, BT10_SNOOP, BT11_REGIMES, BT12_FORWARD, BT13_CHECK } from "./content/backtesting-2";
 import { MN1_CENTRAL_BANKS, MN2_INFLATION, MN3_LABOUR, MN4_GROWTH, MN5_YIELD_CURVE, MN6_DIFFERENTIALS, MN7_RISK_ON_OFF } from "./content/macro-news-1";
+import { CY1_BLOCKCHAINS, CY2_CUSTODY, CY3_STABLECOINS, CY4_VOLATILITY, CY5_SCAMS } from "./content/crypto";
+import { CO1_ENERGY, CO2_METALS, CO3_AGRICULTURE, CO4_FUTURES_ROLL, CO5_DOLLAR } from "./content/commodities";
+import { ADV1_CORRELATION, ADV2_PORTFOLIO_RISK, ADV3_OPTIONS, ADV4_FUTURES, ADV5_PERFORMANCE } from "./content/advanced";
 import { MN8_CALENDAR, MN9_NEWS_TRADING, MN10_EARNINGS, MN11_SHOCKS, MN12_STATEMENTS, MN13_SOURCES } from "./content/macro-news-2";
 
 /** Every written lesson, in curriculum order. */
@@ -48,6 +51,16 @@ export const LESSONS: readonly Lesson[] = [
   SI4_INDEX_CALC,
   SI5_FUNDS,
   SI6_DIVIDENDS_ACTIONS,
+  CY1_BLOCKCHAINS,
+  CY2_CUSTODY,
+  CY3_STABLECOINS,
+  CY4_VOLATILITY,
+  CY5_SCAMS,
+  CO1_ENERGY,
+  CO2_METALS,
+  CO3_AGRICULTURE,
+  CO4_FUTURES_ROLL,
+  CO5_DOLLAR,
   CR1_WHAT_IS_A_CHART,
   CR2_CHART_TYPES,
   CR3_CANDLESTICKS,
@@ -143,6 +156,11 @@ export const LESSONS: readonly Lesson[] = [
   MS9_HFT,
   MS10_RETAIL_FILLS,
   MS11_HALTS,
+  ADV1_CORRELATION,
+  ADV2_PORTFOLIO_RISK,
+  ADV3_OPTIONS,
+  ADV4_FUTURES,
+  ADV5_PERFORMANCE,
 ];
 
 const written = (id: string) => LESSONS.filter((l) => l.trackId === id).sort((a, b) => a.order - b.order).map((l) => l.id);
@@ -156,10 +174,8 @@ export const TRACKS: readonly Track[] = [
   { id: "market-foundations", order: 1, title: "Market Foundations", summary: "What markets are, who takes part and why prices move.", status: "written", prerequisites: [], lessonIds: written("market-foundations"), planned: [] },
   { id: "forex-foundations", order: 2, title: "Forex Foundations", summary: "Currency quotes, pips and lots, leverage and margin, sessions, what moves currencies and what trading them costs.", status: "written", prerequisites: ["market-foundations"], lessonIds: written("forex-foundations"), planned: [] },
   { id: "stocks-indices", order: 3, title: "Stocks and Indices", summary: "Exchanges and order books, earnings, sectors, how indices are built, funds and futures, and corporate actions.", status: "written", prerequisites: ["market-foundations"], lessonIds: written("stocks-indices"), planned: [] },
-  { id: "crypto", order: 4, title: "Cryptocurrency", summary: "Blockchains, exchanges, custody and crypto-specific risks.", status: "planned", prerequisites: ["market-foundations"], lessonIds: [],
-    planned: ["Bitcoin and Ethereum basics", "Exchanges and custody", "Stablecoins", "Crypto volatility and 24/7 markets", "Scams and security"] },
-  { id: "commodities", order: 5, title: "Commodities", summary: "Gold, oil and other raw materials, and what drives them.", status: "planned", prerequisites: ["market-foundations"], lessonIds: [],
-    planned: ["Energy markets", "Precious and industrial metals", "Agricultural commodities", "Futures, expiry and rolling", "Commodities and the US dollar"] },
+  { id: "crypto", order: 4, title: "Cryptocurrency", summary: "Blockchains and consensus, exchanges and custody, stablecoins and runs, volatility and the 24/7 market, and scams and manipulation.", status: "written", prerequisites: ["market-foundations"], lessonIds: written("crypto"), planned: [] },
+  { id: "commodities", order: 5, title: "Commodities", summary: "Oil and gas, precious and industrial metals, crops and stocks-to-use, futures expiry and rolling, and the US dollar.", status: "written", prerequisites: ["market-foundations"], lessonIds: written("commodities"), planned: [] },
   { id: "chart-reading", order: 6, title: "Chart Reading", summary: "How charts are built and drawn, candlesticks, timeframes, structure and trends, volume, scale, levels and gaps, and a practical exam.", status: "written", prerequisites: ["market-foundations"], lessonIds: written("chart-reading"), planned: [] },
   { id: "technical-analysis", order: 7, title: "Technical Analysis", summary: "Moving averages, RSI, MACD, the stochastic, Bollinger Bands and ATR, VWAP and OBV, divergence, trendlines, chart patterns, Fibonacci, confluence and testable rules, each with what it does not tell you.", status: "written", prerequisites: ["chart-reading"], lessonIds: written("technical-analysis"), planned: [] },
   { id: "risk-management", order: 8, title: "Risk Management", summary: "Risk per trade, position sizing for shares, forex and futures, stops, expectancy, drawdowns, leverage, portfolio heat, gaps and loss limits, averaging down and risk of ruin.", status: "written", prerequisites: ["market-foundations", "forex-foundations"], lessonIds: written("risk-management"), planned: [] },
@@ -168,8 +184,7 @@ export const TRACKS: readonly Track[] = [
   { id: "backtesting", order: 11, title: "Backtesting", summary: "What a backtest can and cannot show, data adjustments, lookahead and survivorship bias, costs and fills, metrics, in-sample and out-of-sample splits, walk-forward, parameter robustness, Monte Carlo and the bootstrap, multiple testing, regimes, forward tests and a validity checklist.", status: "written", prerequisites: ["strategy-development"], lessonIds: written("backtesting"), planned: [] },
   { id: "macro-news", order: 12, title: "Macro and News", summary: "Central banks, inflation, jobs, GDP and PMIs, yields and the yield curve, rate differentials, risk-on and risk-off, the economic calendar, trading around news, earnings, shocks, central bank statements and reliable sources.", status: "written", prerequisites: ["forex-foundations", "stocks-indices"], lessonIds: written("macro-news"), planned: [] },
   { id: "market-structure", order: 13, title: "Market Structure", summary: "Exchanges and dealers, market makers and the spread, the order book and priority, order types and their failure modes, slippage, auctions, fragmentation and best execution, dark pools, HFT, payment for order flow and halts.", status: "written", prerequisites: ["stocks-indices"], lessonIds: written("market-structure"), planned: [] },
-  { id: "advanced", order: 14, title: "Advanced Trading Concepts", summary: "Correlation, portfolio risk, derivatives and more.", status: "planned", prerequisites: ["backtesting", "macro-news", "market-structure"], lessonIds: [],
-    planned: ["Correlation", "Portfolio-level risk", "Options basics", "Futures in depth", "Measuring performance properly"] },
+  { id: "advanced", order: 14, title: "Advanced Trading Concepts", summary: "Correlation and its limits, portfolio volatility, VaR and expected shortfall, options and the Greeks, futures margin and basis, and measuring performance properly.", status: "written", prerequisites: ["backtesting", "macro-news", "market-structure"], lessonIds: written("advanced"), planned: [] },
 ];
 
 const LESSON_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));

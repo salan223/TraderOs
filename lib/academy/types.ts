@@ -233,7 +233,22 @@ export type WidgetId =
   | "macro-fig-earnings"
   | "macro-fig-shocks"
   | "macro-fig-statement"
-  | "macro-fig-sources";
+  | "macro-fig-sources"
+  | "cy-hash-chain"
+  | "cy-custody"
+  | "cy-stablecoin-run"
+  | "cy-volatility"
+  | "cy-scam-check"
+  | "co-crack-spread"
+  | "co-metals"
+  | "co-stocks-to-use"
+  | "co-roll-yield"
+  | "co-dollar"
+  | "adv-correlation"
+  | "adv-portfolio-risk"
+  | "adv-option-payoff"
+  | "adv-futures-margin"
+  | "adv-performance";
 
 /** Ids of the static, labelled teaching illustrations in components/academy/illustrations.tsx. */
 export type IllustrationId =
