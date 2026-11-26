@@ -8,6 +8,7 @@ import {
   Sparkles,
   ChartNoAxesCombined,
   Settings,
+  Layers,
   type LucideIcon,
 } from "lucide-react";
 
@@ -31,8 +32,10 @@ export const NAV: NavItem[] = [
     purpose: "A structured course that teaches trading from zero, with quizzes that measure mastery." },
   { href: "/market-desk", label: "Market Desk", short: "Markets", icon: ChartCandlestick, phase: 3, primary: true,
     purpose: "Charts, watchlists and indicators for studying how real markets move." },
-  { href: "/strategy-lab", label: "Strategy Lab", short: "Lab", icon: FlaskConical, phase: 6,
-    purpose: "Write simple rule-based strategies and test them on historical data, honestly." },
+  { href: "/options", label: "Options Lab", short: "Options", icon: Layers, phase: 3,
+    purpose: "Learn calls, puts and the Greeks by trading options on real past price paths, then skip to expiry to see what happened." },
+  { href: "/strategy-lab", label: "Strategy Lab", short: "Lab", icon: FlaskConical, phase: 3,
+    purpose: "Test forecasting methods on years of real history and see how often each one was actually right." },
   { href: "/paper-trading", label: "Paper Trading", short: "Practice", icon: Wallet, phase: 4, primary: true,
     purpose: "Practise with virtual money. No real orders are ever sent." },
   { href: "/journal", label: "Trading Journal", short: "Journal", icon: NotebookPen, phase: 5,

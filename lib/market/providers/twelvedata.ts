@@ -183,3 +183,39 @@ export async function fetchFxQuotes(): Promise<Quote[]> {
   if (quotes.length === 0) throw new Error("Twelve Data sent no usable prices.");
   return quotes;
 }
+
+export type DailyBar = { t: string; o: number; h: number; l: number; c: number };
+
+/**
+ * Daily price history for one symbol, oldest first (up to 5,000 trading
+ * days). Costs 1 credit, counted in the shared daily budget.
+ */
+export async function fetchDailyHistory(providerSymbol: string): Promise<DailyBar[]> {
+  const key = twelveDataKey();
+  if (!key) throw new Error("TWELVE_DATA_API_KEY is not set.");
+  const res = await fetchWithTimeout(
+    `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(providerSymbol)}&interval=1day&outputsize=5000&order=ASC`,
+    { headers: { Authorization: `apikey ${key}`, Accept: "application/json" } },
+    15_000,
+  );
+  rollDay();
+  budget.used += Number(res.headers.get("api-credits-request")) || 1;
+  if (res.status === 429) {
+    const body = (await res.json().catch(() => null)) as TdQuote | null;
+    throw limitError(body?.message);
+  }
+  if (!res.ok) throw new Error(`Twelve Data answered ${res.status}.`);
+  const body = (await res.json()) as { status?: string; code?: number; message?: string; values?: { datetime: string; open: string; high: string; low: string; close: string }[] };
+  if (body.status === "error" || typeof body.code === "number") {
+    if (body.code === 429) throw limitError(body.message);
+    throw new Error(body.message || "Twelve Data returned an error.");
+  }
+  const bars: DailyBar[] = [];
+  for (const v of body.values ?? []) {
+    const o = num(v.open), h = num(v.high), l = num(v.low), c = num(v.close);
+    if (o === null || h === null || l === null || c === null || c <= 0) continue;
+    bars.push({ t: v.datetime.slice(0, 10), o, h, l, c });
+  }
+  if (bars.length < 300) throw new Error("Twelve Data sent too little history for this symbol.");
+  return bars;
+}
